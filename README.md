@@ -121,7 +121,7 @@ PORT=8000
 
 # NVIDIA NIM Configuration
 LLM_PROVIDER=nvidia
-NVIDIA_API_KEY=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
+NVIDIA_API_KEY=your-nvidia-api-key-here
 NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
 NVIDIA_MODEL=meta/llama-3.1-70b-instruct
 

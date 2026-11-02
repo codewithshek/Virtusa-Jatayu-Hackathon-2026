@@ -8,7 +8,7 @@ from pydantic import Field
 class Settings(BaseSettings):
     # LLM Provider Settings
     llm_provider: str = Field(default="nvidia", description="LLM provider: nvidia, ollama, openai, anthropic, gemini")
-    nvidia_api_key: Optional[str] = Field(default="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", description="NVIDIA NIM API key")
+    nvidia_api_key: Optional[str] = Field(default=None, description="NVIDIA NIM API key")
     nvidia_base_url: str = Field(default="https://integrate.api.nvidia.com/v1", description="NVIDIA NIM base URL")
     nvidia_model: str = Field(default="meta/llama-3.1-70b-instruct", description="NVIDIA NIM model")
     ollama_base_url: str = Field(default="http://localhost:11434", description="Ollama base URL")

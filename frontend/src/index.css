@@ -7,7 +7,7 @@
     margin: 0;
     min-height: 100vh;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    background-color: #050811;
+    background-color: #03060c;
     color: #f1f5f9;
     overflow-x: hidden;
   }
@@ -17,30 +17,46 @@
   }
 }
 
-/* Custom Cybernetic Glassmorphism & Glow Utilities */
-.glass-panel {
-  background: rgba(10, 16, 32, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+.font-display {
+  font-family: 'Syne', 'Space Grotesk', -apple-system, sans-serif;
+}
+
+.font-telemetry {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Swiss / Awwwards SOTM Glass & Panel Utilities */
+.glass-slab {
+  background: rgba(8, 14, 28, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.glass-panel-glow {
-  background: rgba(10, 16, 32, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  box-shadow: 0 0 35px -10px rgba(16, 185, 129, 0.15);
+.glass-slab-active {
+  background: rgba(8, 14, 28, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 45px -10px rgba(16, 185, 129, 0.2);
 }
 
-/* Custom Scrollbar */
+.glass-slab-conflict {
+  background: rgba(28, 8, 14, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  box-shadow: 0 0 45px -10px rgba(244, 63, 94, 0.2);
+}
+
+/* Custom Minimal Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #050811;
+  background: #03060c;
 }
 
 ::-webkit-scrollbar-thumb {

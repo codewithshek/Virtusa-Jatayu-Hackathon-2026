@@ -3,13 +3,19 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    border-color: rgba(244, 243, 239, 0.11);
+  }
+
   body {
     margin: 0;
     min-height: 100vh;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    background-color: #03060c;
-    color: #f1f5f9;
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    background-color: #050506;
+    color: #F4F3EF;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   code, pre, .font-mono {
@@ -17,53 +23,75 @@
   }
 }
 
-.font-display {
-  font-family: 'Syne', 'Space Grotesk', -apple-system, sans-serif;
+/* Swiss Architectural Grid & Hairline Primitives */
+.arch-grid {
+  background-image: 
+    linear-gradient(to right, rgba(244, 243, 239, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(244, 243, 239, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 
-.font-telemetry {
+.hairline-border {
+  border: 1px solid rgba(244, 243, 239, 0.11);
+}
+
+.hairline-b {
+  border-bottom: 1px solid rgba(244, 243, 239, 0.11);
+}
+
+.hairline-t {
+  border-top: 1px solid rgba(244, 243, 239, 0.11);
+}
+
+.hairline-l {
+  border-left: 1px solid rgba(244, 243, 239, 0.11);
+}
+
+.hairline-r {
+  border-right: 1px solid rgba(244, 243, 239, 0.11);
+}
+
+/* Tactical Crosshairs */
+.crosshair-corner {
+  position: relative;
+}
+
+.crosshair-corner::before {
+  content: "+";
+  position: absolute;
+  top: -8px;
+  left: -6px;
   font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(244, 243, 239, 0.4);
+  pointer-events: none;
 }
 
-/* Swiss / Awwwards SOTM Glass & Panel Utilities */
-.glass-slab {
-  background: rgba(8, 14, 28, 0.72);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-slab-active {
-  background: rgba(8, 14, 28, 0.88);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  box-shadow: 0 0 45px -10px rgba(16, 185, 129, 0.2);
-}
-
-.glass-slab-conflict {
-  background: rgba(28, 8, 14, 0.88);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(244, 63, 94, 0.4);
-  box-shadow: 0 0 45px -10px rgba(244, 63, 94, 0.2);
+.crosshair-corner::after {
+  content: "+";
+  position: absolute;
+  bottom: -8px;
+  right: -6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(244, 243, 239, 0.4);
+  pointer-events: none;
 }
 
 /* Custom Minimal Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #03060c;
+  background: #050506;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 9999px;
+  background: #27272A;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #3F3F46;
 }

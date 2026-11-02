@@ -1,180 +1,252 @@
-import React from 'react'
-import {
-  ShieldAlert,
-  GitBranch,
-  FileCheck2,
-  Lock,
-  ArrowRight,
-  Terminal,
-  Activity,
-  Cpu,
-  Layers,
-  Sparkles
-} from 'lucide-react'
+import React, { useEffect, useRef } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SlabData } from './HeroScene3D'
+
+gsap.registerPlugin(ScrollTrigger)
 
 interface CinematicParallaxSectionProps {
   hoveredSlab?: SlabData | null
 }
 
 export const CinematicParallaxSection: React.FC<CinematicParallaxSectionProps> = ({ hoveredSlab }) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const ctx = gsap.context(() => {
+      // Animate hairline dividers and chapter coordinates on scroll
+      const chapters = gsap.utils.toArray<HTMLElement>('.narrative-chapter')
+      chapters.forEach((chap) => {
+        const line = chap.querySelector('.hairline-rule')
+        const num = chap.querySelector('.chapter-num')
+        const content = chap.querySelector('.chapter-content')
+
+        if (line) {
+          gsap.fromTo(
+            line,
+            { scaleX: 0, transformOrigin: 'left center' },
+            {
+              scaleX: 1,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: chap,
+                start: 'top 80%',
+                end: 'top 30%',
+                scrub: 0.5,
+              },
+            }
+          )
+        }
+
+        if (num) {
+          gsap.fromTo(
+            num,
+            { y: 60, opacity: 0 },
+            {
+              y: 0,
+              opacity: 0.12,
+              ease: 'power2.out',
+              scrollTrigger: {
+                trigger: chap,
+                start: 'top 85%',
+                end: 'top 40%',
+                scrub: true,
+              },
+            }
+          )
+        }
+
+        if (content) {
+          gsap.fromTo(
+            content,
+            { y: 40, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 1,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: chap,
+                start: 'top 75%',
+                toggleActions: 'play none none reverse',
+              },
+            }
+          )
+        }
+      })
+    }, containerRef)
+
+    return () => ctx.revert()
+  }, [])
+
   return (
-    <div className="relative w-full z-20 pointer-events-auto">
-      {/* Floating Raycast Telemetry HUD (Appears when hovering any 3D slab) */}
+    <div ref={containerRef} className="relative w-full z-10 pointer-events-auto">
+      {/* Live Raycast Monolith Inspection HUD (When hovering 3D blades) */}
       {hoveredSlab && (
         <aside
-          aria-label="3D Policy Slab Inspector"
-          className="fixed bottom-8 right-8 z-50 glass-slab-active p-4 rounded-xl max-w-sm border border-emerald-500/40 shadow-2xl backdrop-blur-2xl transition-all duration-300 pointer-events-none"
+          aria-label="3D Blade Inspector"
+          className="fixed bottom-6 right-6 z-50 p-4 border border-[#F4F3EF]/20 bg-[#0B0B0D]/95 backdrop-blur-md shadow-2xl pointer-events-none rounded-none max-w-sm"
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold uppercase">
-              Raycast Slab Active
+            <span className="text-[10px] font-mono px-2 py-0.5 bg-[#F4F3EF]/10 text-bone uppercase tracking-widest">
+              [RAYCAST // {hoveredSlab.id}]
             </span>
-            <span className="text-[10px] font-mono text-slate-400">{hoveredSlab.tier}</span>
+            <span
+              className="text-[10px] font-mono font-bold"
+              style={{ color: hoveredSlab.color }}
+            >
+              {hoveredSlab.status}
+            </span>
           </div>
-          <div className="text-base font-bold text-white mb-1 font-display">{hoveredSlab.id}</div>
-          <div className="text-xs font-mono text-slate-300 mb-2">{hoveredSlab.clause}</div>
-          <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono">
-            <span className="text-slate-400">Precedence: <strong className="text-emerald-400">Tier {hoveredSlab.tierNum}</strong></span>
-            <span className="text-cyan-400 font-bold">STATUS: {hoveredSlab.status}</span>
+          <div className="text-sm font-bold font-display text-bone mb-1">{hoveredSlab.clause}</div>
+          <div className="text-[11px] font-mono text-ash flex items-center justify-between pt-2 border-t border-[#F4F3EF]/10">
+            <span>{hoveredSlab.tier}</span>
+            <span>PRECEDENCE: TIER {hoveredSlab.tierNum}</span>
           </div>
         </aside>
       )}
 
-      {/* ========================================================================= */}
-      {/* BEAT 1: Asymmetric Swiss Hero (0% - 25% Scroll)                          */}
-      {/* ========================================================================= */}
-      <section className="min-h-screen flex flex-col justify-between px-6 md:px-16 pt-24 pb-16 max-w-7xl mx-auto">
-        <div className="max-w-2xl">
-          {/* Status Chip */}
-          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/60 text-slate-300 text-xs font-mono mb-8 backdrop-blur-md shadow-inner">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-emerald-400 font-semibold">NVIDIA NIM Grounded</span>
-            <span className="text-slate-600">/</span>
-            <span>Meta Llama 3.1 70B</span>
+      {/* ===================================================================== */}
+      {/* CHAPTER 01: Ingestion & Epistemic Grounding (Hero Beat)               */}
+      {/* ===================================================================== */}
+      <section className="narrative-chapter relative min-h-screen flex flex-col justify-between px-6 md:px-16 pt-28 pb-16 max-w-7xl mx-auto">
+        <div className="chapter-num absolute top-20 right-6 text-[18vw] font-display font-black text-bone opacity-10 select-none pointer-events-none leading-none">
+          01
+        </div>
+
+        <div className="chapter-content max-w-2xl relative z-10">
+          <div className="inline-flex items-center gap-2 mb-6 font-mono text-[11px] tracking-[0.2em] text-[#C4F82A] uppercase">
+            <span className="w-1.5 h-1.5 bg-[#C4F82A]" />
+            <span>[SYS.01 // FORENSIC EPISTEMIC ENGINE]</span>
           </div>
 
-          {/* Asymmetric Typography */}
-          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-8 leading-[1.04] font-display">
-            Epistemic <br />
-            Forensics for <br />
-            <span className="text-slate-400">Contradictory</span> <br />
-            Policy Corpora.
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-bone font-display leading-[0.98] mb-8">
+            Adversarial <br />
+            Verification for <br />
+            Inconsistent Corpora.
           </h1>
 
-          <p className="text-base md:text-lg text-slate-300 leading-relaxed font-light mb-10 max-w-xl">
-            When enterprise guidelines, union memos, and regulatory mandates conflict, standard RAG hallucinates a compromise.
-            TruthGuard executes 3-vector adversarial verification, bi-temporal DAG precedence, and autonomous abstention.
+          <p className="text-sm sm:text-base text-ash leading-relaxed font-sans max-w-xl mb-10">
+            Enterprise document corpora decay into diametric policy contradictions across version boundaries.
+            TruthGuard rejects probabilistic hallucination, enforcing 3-vector adversarial verification,
+            bi-temporal DAG precedence, and autonomous abstention.
           </p>
 
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-6">
             <a
-              href="#workbench-console"
-              className="px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+              href="#workbench-terminal"
+              className="px-6 py-3.5 bg-bone text-carbon hover:bg-white text-xs font-mono font-bold tracking-widest uppercase transition-colors"
             >
-              <span>Launch Verification Console</span>
-              <ArrowRight className="w-4 h-4" />
+              Initialize Forensic Terminal →
             </a>
-            <span className="text-xs font-mono text-slate-400">
-              Scroll down to inspect the 3D optical breakdown ↓
+            <span className="text-[11px] font-mono text-zinc hidden sm:inline-block">
+              [SCROLL TO AUDIT SPECTROGRAPH]
             </span>
           </div>
         </div>
 
-        {/* Live Monolith Telemetry Ticker */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-12 border-t border-slate-800/80 font-mono text-xs text-slate-400">
-          <div>
-            <span className="text-slate-400 block mb-0.5">AUTHORITY ENGINE</span>
-            <span className="text-white font-bold">5-Tier Precedence DAG</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block mb-0.5">SUPERSESSION ACCURACY</span>
-            <span className="text-emerald-400 font-bold">100.0% Verified</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block mb-0.5">CONTRADICTION F1</span>
-            <span className="text-cyan-400 font-bold">1.000 (Target ≥0.85)</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block mb-0.5">ABSTENTION GATE</span>
-            <span className="text-amber-400 font-bold">Zero-Gamble Refusal</span>
+        {/* Technical Coordinate Baseline */}
+        <div className="relative z-10 pt-8 border-t border-[#F4F3EF]/10">
+          <div className="hairline-rule w-full h-[1px] bg-[#F4F3EF]/20 mb-6" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 font-mono text-xs text-ash">
+            <div>
+              <span className="text-zinc block text-[10px] tracking-widest mb-1">[BACKBONE]</span>
+              <span className="text-bone font-medium">NVIDIA NIM // Llama 3.1 70B</span>
+            </div>
+            <div>
+              <span className="text-zinc block text-[10px] tracking-widest mb-1">[PRECEDENCE]</span>
+              <span className="text-[#C4F82A] font-medium">5-Tier Authority DAG</span>
+            </div>
+            <div>
+              <span className="text-zinc block text-[10px] tracking-widest mb-1">[CONTRADICTION F1]</span>
+              <span className="text-bone font-medium">1.000 (Target ≥0.85)</span>
+            </div>
+            <div>
+              <span className="text-zinc block text-[10px] tracking-widest mb-1">[DISPOSITION]</span>
+              <span className="text-bone font-medium">Deterministic Abstention</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* BEAT 2: Deontic Contradiction Isolation (25% - 55% Scroll)                */}
-      {/* ========================================================================= */}
-      <section className="min-h-screen flex flex-col justify-center px-6 md:px-16 py-32 max-w-7xl mx-auto">
-        {/* Monumental Watermark Typography behind HUD */}
-        <div className="select-none pointer-events-none text-[12vw] font-extrabold text-slate-900/40 uppercase tracking-tighter font-display leading-none mb-4 -ml-2">
-          Deontic Clash
+      {/* ===================================================================== */}
+      {/* CHAPTER 02: Deontic Contradiction Isolation                          */}
+      {/* ===================================================================== */}
+      <section className="narrative-chapter relative min-h-screen flex flex-col justify-center px-6 md:px-16 py-32 max-w-7xl mx-auto">
+        <div className="chapter-num absolute top-12 left-4 text-[18vw] font-display font-black text-bone opacity-10 select-none pointer-events-none leading-none">
+          02
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="chapter-content grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
           <div className="lg:col-span-5 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Chapter 02 // Deontic Logic Conflict</span>
+            <div className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-[#FF3B1D] uppercase">
+              <span className="w-1.5 h-1.5 bg-[#FF3B1D]" />
+              <span>[SYS.02 // DEONTIC CONTRADICTION]</span>
             </div>
 
-            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight font-display">
-              Contradiction <br />
-              Isolation Matrix.
+            <h2 className="text-3xl md:text-5xl font-bold text-bone font-display tracking-tight leading-[1.05]">
+              Symbolic <br />
+              Deontic Clash.
             </h2>
 
-            <p className="text-sm md:text-base text-slate-300 leading-relaxed">
-              Standard LLMs average contradictory numbers into an unbacked hallucination.
-              TruthGuard models policy statements as interval bounds and evaluates cross-document deontic satisfiability.
+            <p className="text-xs md:text-sm text-ash leading-relaxed">
+              Standard LLMs average contradictory policy values into an unbacked compromise.
+              TruthGuard decomposes policy statements into bounded deontic intervals, evaluating
+              cross-document satisfiability before draft synthesis.
             </p>
 
-            <div className="glass-slab-conflict p-5 rounded-2xl border border-rose-500/40 font-mono text-xs">
-              <div className="text-rose-400 font-bold mb-2 flex items-center justify-between">
-                <span>SYMBOLIC EVALUATION</span>
-                <span>STATUS: UNSAT</span>
+            {/* Industrial Data Box */}
+            <div className="p-5 border border-[#FF3B1D]/30 bg-[#0B0B0D]/90 rounded-none font-mono text-xs">
+              <div className="flex items-center justify-between text-[#FF3B1D] font-bold mb-2 pb-2 border-b border-[#FF3B1D]/20">
+                <span>EVALUATION: UNSAT</span>
+                <span>DELTA DETECTED</span>
               </div>
-              <div className="p-3 bg-black/60 rounded-lg text-slate-200 mb-2">
+              <div className="p-3 bg-black text-[#F4F3EF] mb-2 border border-[#F4F3EF]/10">
                 <code>[0, 1] ∩ [4, 5] = ∅ (Empty Set)</code>
               </div>
-              <p className="text-slate-400 text-[11px] leading-relaxed">
-                HR-POL-2024 (Tier 3) restricts remote work to 1 day/week, while ENG-MEMO-2025 permits 4 days.
-                The 3-vector Critic triggers an immediate conflict edge before synthesis.
+              <p className="text-[11px] text-zinc leading-relaxed">
+                HR-POL-2024 restricts remote work to 1 day/wk. ENG-MEMO-25 allows up to 4 days/wk.
+                NLI cross-encoder scores 0.94 contradiction confidence.
               </p>
             </div>
           </div>
 
           <div className="lg:col-span-7 space-y-4">
-            {/* Split Inspection HUD Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="glass-slab p-5 rounded-2xl border border-amber-500/30">
-                <div className="flex items-center justify-between text-xs font-mono text-amber-400 mb-2">
-                  <span>TIER 3 · FORMAL POLICY</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
+              {/* Blade A */}
+              <div className="p-5 border border-[#F4F3EF]/12 bg-[#0B0B0D]/85 crosshair-corner">
+                <div className="flex items-center justify-between text-zinc mb-2">
+                  <span>TIER 03 // POLICY</span>
                   <span>DOC: HR-POL-2024</span>
                 </div>
-                <div className="text-lg font-bold text-white mb-2 font-display">
+                <div className="text-base font-bold font-display text-bone mb-2">
                   Remote Work Allowance
                 </div>
-                <p className="text-xs font-mono text-slate-300 mb-3">
-                  "Employees may work remotely up to one (1) day per week with manager approval."
+                <p className="text-ash text-xs mb-4">
+                  "Full-time employees may work remotely up to one (1) day per week with department approval."
                 </p>
-                <div className="text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-800">
-                  Interval Bound: <strong className="text-amber-400">[0, 1] days/wk</strong>
+                <div className="text-[11px] text-[#FF3B1D] pt-2 border-t border-[#F4F3EF]/10">
+                  INTERVAL BOUND: [0, 1] DAYS/WK
                 </div>
               </div>
 
-              <div className="glass-slab p-5 rounded-2xl border border-rose-500/40">
-                <div className="flex items-center justify-between text-xs font-mono text-rose-400 mb-2">
-                  <span>TIER 4 · DEPT MEMO</span>
-                  <span>DOC: ENG-MEMO-2025</span>
+              {/* Blade B */}
+              <div className="p-5 border border-[#FF3B1D]/40 bg-[#0B0B0D]/85 crosshair-corner">
+                <div className="flex items-center justify-between text-[#FF3B1D] mb-2">
+                  <span>TIER 04 // ADDENDUM</span>
+                  <span>DOC: ENG-MEMO-25</span>
                 </div>
-                <div className="text-lg font-bold text-white mb-2 font-display">
-                  Engineering Department Addendum
+                <div className="text-base font-bold font-display text-bone mb-2">
+                  Engineering Scope Addendum
                 </div>
-                <p className="text-xs font-mono text-slate-300 mb-3">
-                  "Engineering personnel are permitted remote flexibility up to four (4) days per week."
+                <p className="text-ash text-xs mb-4">
+                  "Field and systems engineering personnel are permitted remote flexibility up to four (4) days per week."
                 </p>
-                <div className="text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-800">
-                  Interval Bound: <strong className="text-rose-400">[4, 5] days/wk</strong>
+                <div className="text-[11px] text-[#FF3B1D] pt-2 border-t border-[#FF3B1D]/20">
+                  INTERVAL BOUND: [4, 5] DAYS/WK
                 </div>
               </div>
             </div>
@@ -182,141 +254,139 @@ export const CinematicParallaxSection: React.FC<CinematicParallaxSectionProps> =
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* BEAT 3: Bi-Temporal DAG & Silent Revocation (55% - 85% Scroll)            */}
-      {/* ========================================================================= */}
-      <section className="min-h-screen flex flex-col justify-center px-6 md:px-16 py-32 max-w-7xl mx-auto">
-        {/* Monumental Watermark */}
-        <div className="select-none pointer-events-none text-[12vw] font-extrabold text-slate-900/40 uppercase tracking-tighter font-display leading-none mb-4 -ml-2">
-          Authority DAG
+      {/* ===================================================================== */}
+      {/* CHAPTER 03: Bi-Temporal DAG & Silent Revocation                       */}
+      {/* ===================================================================== */}
+      <section className="narrative-chapter relative min-h-screen flex flex-col justify-center px-6 md:px-16 py-32 max-w-7xl mx-auto">
+        <div className="chapter-num absolute top-12 right-6 text-[18vw] font-display font-black text-bone opacity-10 select-none pointer-events-none leading-none">
+          03
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="chapter-content grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
           <div className="lg:col-span-5 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono">
-              <GitBranch className="w-3.5 h-3.5" />
-              <span>Chapter 03 // Bi-Temporal Graph Lineage</span>
+            <div className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-[#C4F82A] uppercase">
+              <span className="w-1.5 h-1.5 bg-[#C4F82A]" />
+              <span>[SYS.03 // BI-TEMPORAL DAG]</span>
             </div>
 
-            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight font-display">
+            <h2 className="text-3xl md:text-5xl font-bold text-bone font-display tracking-tight leading-[1.05]">
               Deterministic <br />
-              Supersession.
+              Precedence.
             </h2>
 
-            <p className="text-sm md:text-base text-slate-300 leading-relaxed">
-              When documents possess different authority tiers, TruthGuard applies formal precedence:
-              Regulatory Mandate (Tier 1) &gt; Security Directive (Tier 2) &gt; Policy (Tier 3) &gt; Memo (Tier 4) &gt; FAQ (Tier 5).
-              Stale legacy documents are pruned from governing synthesis.
+            <p className="text-xs md:text-sm text-ash leading-relaxed">
+              When documents possess mismatched authority tiers, TruthGuard traverses the Directed Acyclic Graph:
+              Tier 1 Mandate &gt; Tier 2 Directive &gt; Tier 3 Policy &gt; Tier 4 Memo &gt; Tier 5 FAQ.
+              Superseded clauses are pruned; silent omissions are flagged.
             </p>
 
-            <div className="glass-slab-active p-5 rounded-2xl border border-emerald-500/40 font-mono text-xs">
-              <div className="text-emerald-400 font-bold mb-2 flex items-center justify-between">
+            <div className="p-5 border border-[#C4F82A]/30 bg-[#0B0B0D]/90 font-mono text-xs">
+              <div className="text-[#C4F82A] font-bold mb-2 flex items-center justify-between pb-2 border-b border-[#C4F82A]/20">
                 <span>SILENT REVOCATION DETECTOR</span>
-                <span>DELTA IDENTIFIED</span>
+                <span>STATUS: PRUNED</span>
               </div>
-              <p className="text-slate-300 text-xs mb-3">
-                Mandate <strong className="text-white">REG-2025-09</strong> supersedes legacy FAQ by requiring FIDO2 Hardware Keys, silently invalidating SMS 2FA.
+              <p className="text-ash text-xs mb-3">
+                Mandate <strong className="text-bone">REG-2025-09</strong> enforces FIDO2 Hardware Tokens, silently revoking legacy SMS 2FA.
               </p>
-              <div className="p-3 bg-black/60 rounded border border-emerald-500/30 text-emerald-300 text-[11px]">
-                <code>+ REG-2025-09: FIDO2 Token Required [ENFORCED]</code><br />
-                <code className="text-rose-400">- FAQ-2023-LEGACY: SMS 2FA [REVOKED & PRUNED]</code>
+              <div className="p-3 bg-black border border-[#F4F3EF]/10 space-y-1 text-[11px]">
+                <div className="text-[#C4F82A]">+ REG-2025-09: FIDO2 Token Enforced [GOVERNING]</div>
+                <div className="text-[#FF3B1D] line-through">- FAQ-2023-OLD: SMS 2FA Permitted [REVOKED]</div>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-7">
-            {/* 5-Tier Precedence Hierarchy Card */}
-            <div className="glass-slab rounded-2xl p-6 border border-slate-800 space-y-3 font-mono text-xs">
-              <div className="text-slate-400 uppercase tracking-wider text-[11px] pb-2 border-b border-slate-800 flex items-center justify-between">
-                <span>Authority Hierarchy Tree</span>
-                <span className="text-cyan-400">Bi-Temporal Resolution Engine</span>
+            {/* Architectural Hierarchy Stack */}
+            <div className="p-6 border border-[#F4F3EF]/12 bg-[#0B0B0D]/90 space-y-2.5 font-mono text-xs">
+              <div className="text-zinc uppercase text-[10px] tracking-widest pb-2 border-b border-[#F4F3EF]/10 flex items-center justify-between">
+                <span>[AUTHORITY DAG RESOLUTION TREE]</span>
+                <span className="text-[#C4F82A]">DETERMINISTIC EVALUATION</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
-                <span className="text-emerald-400 font-bold">TIER 1 · REGULATORY MANDATE</span>
-                <span className="text-white">REG-2025-09 (GOVERNING)</span>
+              <div className="p-3 border border-[#C4F82A]/40 bg-[#C4F82A]/5 flex items-center justify-between">
+                <span className="text-[#C4F82A] font-bold">TIER 01 // REGULATORY MANDATE</span>
+                <span className="text-bone">REG-2025-09 (GOVERNING)</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between">
-                <span className="text-cyan-400 font-bold">TIER 2 · SECURITY DIRECTIVE</span>
-                <span className="text-slate-200">SEC-2025-11 (ACTIVE)</span>
+              <div className="p-3 border border-[#F4F3EF]/20 bg-black/40 flex items-center justify-between">
+                <span className="text-bone font-medium">TIER 02 // SECURITY DIRECTIVE</span>
+                <span className="text-ash">SEC-2025-11 (ACTIVE)</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
-                <span className="text-amber-400 font-bold">TIER 3 · FORMAL POLICY</span>
-                <span className="text-slate-300">HR-POL-2024 v2.1</span>
+              <div className="p-3 border border-[#F4F3EF]/12 bg-black/40 flex items-center justify-between">
+                <span className="text-ash">TIER 03 // FORMAL POLICY</span>
+                <span className="text-zinc">HR-POL-2024 (SUPERSEDED BY SCOPE)</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-slate-400">
-                <span>TIER 4 · DEPT MEMO</span>
-                <span>ENG-MEMO-2025 (EXCEPTION)</span>
+              <div className="p-3 border border-[#F4F3EF]/12 bg-black/40 flex items-center justify-between text-zinc">
+                <span>TIER 04 // DEPT ADDENDUM</span>
+                <span>ENG-MEMO-25 (FIELD EXCEPTION)</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/30 flex items-center justify-between text-rose-400">
-                <span className="line-through">TIER 5 · GENERAL FAQ</span>
-                <span className="text-xs uppercase font-bold bg-rose-500/20 px-2 py-0.5 rounded">PRUNED / STALE</span>
+              <div className="p-3 border border-[#FF3B1D]/30 bg-[#FF3B1D]/5 flex items-center justify-between text-[#FF3B1D]">
+                <span className="line-through">TIER 05 // GENERAL FAQ</span>
+                <span className="text-[10px] font-bold border border-[#FF3B1D]/40 px-2 py-0.5">REVOKED & PRUNED</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* BEAT 4: Cryptographic Merkle Provenance (85% - 100% Scroll)               */}
-      {/* ========================================================================= */}
-      <section className="min-h-screen flex flex-col justify-center px-6 md:px-16 py-32 max-w-7xl mx-auto">
-        <div className="select-none pointer-events-none text-[12vw] font-extrabold text-slate-900/40 uppercase tracking-tighter font-display leading-none mb-4 -ml-2">
-          Merkle Seal
+      {/* ===================================================================== */}
+      {/* CHAPTER 04: Cryptographic Merkle Provenance                           */}
+      {/* ===================================================================== */}
+      <section className="narrative-chapter relative min-h-screen flex flex-col justify-center px-6 md:px-16 py-32 max-w-7xl mx-auto">
+        <div className="chapter-num absolute top-12 left-4 text-[18vw] font-display font-black text-bone opacity-10 select-none pointer-events-none leading-none">
+          04
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-6 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-mono">
-              <Lock className="w-3.5 h-3.5" />
-              <span>Chapter 04 // Cryptographic Grounding</span>
+        <div className="chapter-content grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+          <div className="lg:col-span-5 space-y-6">
+            <div className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-[#C4F82A] uppercase">
+              <span className="w-1.5 h-1.5 bg-[#C4F82A]" />
+              <span>[SYS.04 // CRYPTOGRAPHIC GROUNDING]</span>
             </div>
 
-            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight font-display">
-              Tamper-Proof <br />
-              SHA-256 Provenance.
+            <h2 className="text-3xl md:text-5xl font-bold text-bone font-display tracking-tight leading-[1.05]">
+              HMAC-SHA256 <br />
+              Provenance Seal.
             </h2>
 
-            <p className="text-sm md:text-base text-slate-300 leading-relaxed">
-              Every synthesized claim is decomposed into atomic propositions bound directly to cited passage byte-spans.
-              The resolution engine computes an HMAC SHA-256 Merkle root to seal the verification trace.
+            <p className="text-xs md:text-sm text-ash leading-relaxed">
+              Every synthesized claim is decomposed into atomic claims bound to verbatim cited byte-spans.
+              The resolution engine seals the verification trajectory with a cryptographic Merkle root hash.
             </p>
 
             <a
-              href="#workbench-console"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-emerald-400 font-mono text-xs tracking-wider uppercase transition-colors"
+              href="#workbench-terminal"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-bone text-carbon hover:bg-white text-xs font-mono font-bold tracking-widest uppercase transition-colors"
             >
-              <span>Test Live Query in Workbench Console</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              Test Scenarios in Live Terminal →
             </a>
           </div>
 
-          <div className="lg:col-span-6">
-            <div className="glass-slab-active p-6 rounded-2xl border border-teal-500/40 font-mono text-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <span className="text-teal-400 font-bold uppercase">PROVENANCE RECEIPT</span>
-                <span className="text-slate-400">HMAC-SHA256</span>
+          <div className="lg:col-span-7">
+            <div className="p-6 border border-[#F4F3EF]/12 bg-[#0B0B0D]/90 font-mono text-xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#F4F3EF]/10">
+                <span className="text-[#C4F82A] font-bold uppercase tracking-wider">[PROVENANCE RECEIPT]</span>
+                <span className="text-zinc">RFC-2104 COMPLIANT</span>
               </div>
 
               <div>
-                <span className="text-slate-400 block mb-1">MERKLE ROOT HASH:</span>
-                <div className="p-3 bg-black/60 rounded border border-slate-800 text-cyan-300 break-all select-all font-mono text-xs">
+                <span className="text-zinc block text-[10px] tracking-widest mb-1">MERKLE ROOT DIGEST:</span>
+                <div className="p-3 bg-black border border-[#F4F3EF]/10 text-bone break-all select-all text-xs font-mono">
                   0xd13f7247a0607f672c779c2d7f32dd5a1e5da1df4ac7b87c6539603fbb5872e2
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 rounded bg-slate-900/80 border border-slate-800">
-                  <span className="text-slate-400 block text-[11px]">ATOMIC CLAIMS:</span>
-                  <span className="text-emerald-400 font-bold text-sm">3 / 3 Verified</span>
+                <div className="p-3 border border-[#F4F3EF]/10 bg-black/40">
+                  <span className="text-zinc block text-[10px] tracking-widest mb-1">ATOMIC CLAIMS</span>
+                  <span className="text-[#C4F82A] font-bold text-sm">3 / 3 ENTAILED</span>
                 </div>
-                <div className="p-3 rounded bg-slate-900/80 border border-slate-800">
-                  <span className="text-slate-400 block text-[11px]">UNBACKED REJECTED:</span>
-                  <span className="text-white font-bold text-sm">0 Permitted</span>
+                <div className="p-3 border border-[#F4F3EF]/10 bg-black/40">
+                  <span className="text-zinc block text-[10px] tracking-widest mb-1">UNBACKED CLAIMS</span>
+                  <span className="text-bone font-bold text-sm">0 PERMITTED</span>
                 </div>
               </div>
             </div>

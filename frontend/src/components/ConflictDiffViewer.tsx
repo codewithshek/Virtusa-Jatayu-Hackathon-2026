@@ -1,6 +1,6 @@
 import React from 'react'
 import { PositionSurfaced, ResolutionStatus, ContradictionEdge } from '../types'
-import { CheckCircle2, XCircle, GitPullRequest, ShieldAlert, Cpu, Hash } from 'lucide-react'
+import { Hash, GitPullRequest } from 'lucide-react'
 
 interface ConflictDiffViewerProps {
   positions: PositionSurfaced[]
@@ -36,169 +36,135 @@ export const ConflictDiffViewer: React.FC<ConflictDiffViewerProps> = ({
   }
 
   const isAbstention = status === ResolutionStatus.UNRESOLVABLE_ABSTAIN
-  const governingPositions = positions.filter(p => p.is_governing)
-  const supersededPositions = positions.filter(p => p.is_stale || !p.is_governing)
+  const governingPositions = positions.filter((p) => p.is_governing)
+  const supersededPositions = positions.filter((p) => p.is_stale || !p.is_governing)
   const autoPrs = corpusHygiene?.auto_prs || []
 
   return (
-    <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 backdrop-blur-xl shadow-2xl">
-      {/* Header Banner */}
-      <div className={`p-5 border-b ${
-        isAbstention
-          ? 'bg-rose-950/40 border-rose-500/30'
-          : 'bg-emerald-950/30 border-emerald-500/20'
-      }`}>
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2">
-            <span className={`px-3 py-1 text-xs font-mono font-bold tracking-wider rounded-full border ${
+    <div className="w-full border border-[#F4F3EF]/12 bg-[#0B0B0D]/90 crosshair-corner p-6 font-sans">
+      {/* Header Bar */}
+      <div className="flex flex-wrap items-center justify-between pb-4 mb-5 border-b border-[#F4F3EF]/10 gap-3">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[11px] tracking-[0.2em] uppercase text-[#C4F82A]">
+            [SYS.03 // DEONTIC DIFF MATRIX]
+          </span>
+          <span
+            className={`font-mono text-[10px] px-2 py-0.5 border uppercase tracking-wider font-bold ${
               isAbstention
-                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-            }`}>
-              {isAbstention ? 'UNRESOLVABLE ABSTENTION (DEADLOCK)' : 'CONFLICT RESOLVED VIA AUTHORITY DAG'}
-            </span>
-            {!isAbstention && governingPositions.length > 0 && (
-              <span className="text-xs font-mono text-slate-300 bg-slate-900/80 px-2.5 py-1 rounded-md border border-slate-800">
-                Governing Doc: <strong className="text-emerald-400">{governingPositions[0].doc_id}</strong>
-              </span>
-            )}
-          </div>
-
-          {merkleProvenance?.merkle_root && (
-            <div className="flex items-center gap-1.5 text-xs font-mono bg-slate-900/90 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-lg">
-              <Hash className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Merkle: {merkleProvenance.merkle_root.slice(0, 16)}...</span>
-              <span className="text-slate-500">({merkleProvenance.span_count || 0} spans)</span>
-            </div>
-          )}
+                ? 'border-[#FF3B1D]/40 text-[#FF3B1D] bg-[#FF3B1D]/5'
+                : 'border-[#C4F82A]/40 text-[#C4F82A] bg-[#C4F82A]/5'
+            }`}
+          >
+            {isAbstention ? 'DEADLOCK REFUSAL [ABSTAIN]' : 'RESOLVED VIA AUTHORITY DAG'}
+          </span>
         </div>
 
-        {finalAnswer && (
-          <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 text-sm md:text-base text-slate-200 leading-relaxed font-normal">
-            <span className="text-xs font-mono text-emerald-400 block mb-1 uppercase tracking-wider">
-              {isAbstention ? 'Abstention Disposition' : 'Epistemically Verified Resolution'}
-            </span>
-            {finalAnswer}
+        {merkleProvenance?.merkle_root && (
+          <div className="flex items-center gap-1.5 font-mono text-[11px] text-zinc bg-black/60 px-3 py-1 border border-[#F4F3EF]/10">
+            <Hash className="w-3.5 h-3.5 text-ash" />
+            <span className="text-bone">{merkleProvenance.merkle_root.slice(0, 18)}...</span>
+            <span className="text-zinc">({merkleProvenance.span_count || 0} spans)</span>
           </div>
         )}
       </div>
 
-      {/* Cross-Encoder Contradiction Edge Badges */}
+      {/* Final Synthesized Resolution Box */}
+      {finalAnswer && (
+        <div className="p-4 bg-black/70 border border-[#F4F3EF]/10 mb-6 font-mono text-xs text-bone leading-relaxed">
+          <div className="text-[10px] tracking-widest text-[#C4F82A] uppercase mb-1.5 font-bold">
+            {isAbstention ? '[ABSTENTION DISPOSITION]' : '[EPISTEMICALLY GOVERNING RESOLUTION]'}
+          </div>
+          {finalAnswer}
+        </div>
+      )}
+
+      {/* Contradiction Edges Found */}
       {contradictions.length > 0 && (
-        <div className="px-5 pt-4 flex flex-wrap gap-2">
+        <div className="mb-6 space-y-2">
           {contradictions.map((c, i) => (
             <div
               key={i}
-              className="text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3 py-1.5 rounded-lg flex items-center gap-2"
+              className="p-3 border border-[#FF3B1D]/30 bg-[#FF3B1D]/5 font-mono text-xs flex flex-wrap items-center justify-between gap-2"
             >
-              <span className="text-amber-400 font-bold">⚡ Contradiction Detected:</span>
-              <span>{c.conflict_summary}</span>
-              <span className="text-amber-200/60 font-semibold">({Math.round(c.confidence * 100)}% conf · {c.resolution_rule})</span>
+              <div className="text-[#FF3B1D] font-bold">
+                [CONTRADICTION DETECTED] // {c.conflict_summary}
+              </div>
+              <div className="text-zinc text-[11px]">
+                CONFIDENCE: {(c.confidence * 100).toFixed(0)}% · RULE: {c.resolution_rule}
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Side-by-side Git-style Truth Diff */}
-      <div className="p-5">
-        {isAbstention ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {positions.map((pos) => (
-              <div key={pos.doc_id} className="rounded-xl p-4 bg-rose-950/20 border border-rose-500/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <XCircle className="w-4 h-4 text-rose-400" />
-                  <span className="text-xs font-mono font-bold text-rose-400 uppercase">
-                    Deadlocked Dialectic Position
-                  </span>
+      {/* Side-by-side Git Diff View */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+        {/* Superseded Stale Position */}
+        {supersededPositions.length > 0 && (
+          <div className="p-5 border border-[#FF3B1D]/30 bg-black/40">
+            <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#FF3B1D]/20 text-[#FF3B1D] text-[10px] tracking-widest uppercase font-bold">
+              <span>[-] SUPERSEDED PREDECESSOR</span>
+              <span>PRUNED</span>
+            </div>
+            {supersededPositions.map((pos) => (
+              <div key={pos.doc_id} className="space-y-1.5 mb-4 last:mb-0">
+                <div className="text-bone font-medium font-sans text-sm">{pos.title}</div>
+                <div className="text-ash line-through decoration-[#FF3B1D]/60 text-xs">
+                  "{pos.claim_text}"
                 </div>
-                <h4 className="text-sm font-semibold text-white mb-1">{pos.title}</h4>
-                <p className="text-sm text-slate-300 leading-relaxed">{pos.claim_text}</p>
-                <div className="mt-3 pt-2 border-t border-rose-500/20 text-xs font-mono text-slate-400 flex items-center justify-between">
-                  <span>Doc: {pos.doc_id}</span>
-                  <span>Date: {pos.effective_date}</span>
-                  <span>Tier: {pos.authority_tier}</span>
+                <div className="text-[10px] text-zinc pt-2 border-t border-[#F4F3EF]/5 flex items-center justify-between">
+                  <span>DOC: {pos.doc_id}</span>
+                  <span>DATE: {pos.effective_date}</span>
+                  <span className="text-[#FF3B1D]">TIER {pos.authority_tier}</span>
                 </div>
               </div>
             ))}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Superseded / Stale Column */}
-            {supersededPositions.length > 0 && (
-              <div className="rounded-xl p-4 bg-slate-950/60 border border-rose-500/30">
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-rose-500/20">
-                  <span className="w-2 h-2 rounded-full bg-rose-500" />
-                  <span className="text-xs font-mono font-bold text-rose-400 uppercase tracking-wider">
-                    − Superseded / Stale Predecessor
-                  </span>
-                </div>
-                {supersededPositions.map((pos) => (
-                  <div key={pos.doc_id} className="pl-3 border-l-2 border-rose-500/40 mb-3 last:mb-0">
-                    <h4 className="text-sm font-semibold text-slate-300">{pos.title}</h4>
-                    <p className="text-sm text-slate-500 line-through decoration-rose-500/60 mt-1">
-                      {pos.claim_text}
-                    </p>
-                    <div className="mt-2 text-xs font-mono text-slate-400 flex flex-wrap gap-2">
-                      <span className="bg-slate-900 px-2 py-0.5 rounded border border-slate-800">{pos.doc_id}</span>
-                      <span className="text-rose-400">Date: {pos.effective_date}</span>
-                      <span className="text-slate-400">
-                        Superseded by {governingPositions[0]?.doc_id || 'higher tier'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Governing / Active Column */}
-            {governingPositions.length > 0 && (
-              <div className="rounded-xl p-4 bg-slate-950/60 border border-emerald-500/40 shadow-lg shadow-emerald-500/5">
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-emerald-500/20">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">
-                    + Governing Active Policy
-                  </span>
-                </div>
-                {governingPositions.map((pos) => (
-                  <div key={pos.doc_id} className="pl-3 border-l-2 border-emerald-400 mb-3 last:mb-0">
-                    <h4 className="text-sm font-semibold text-white">{pos.title}</h4>
-                    <p className="text-sm text-slate-200 mt-1 leading-relaxed">
-                      {pos.claim_text}
-                    </p>
-                    <div className="mt-2 text-xs font-mono text-slate-400 flex flex-wrap gap-2">
-                      <span className="bg-slate-900 px-2 py-0.5 rounded border border-slate-800 text-emerald-400">{pos.doc_id}</span>
-                      <span className="text-emerald-400">Date: {pos.effective_date}</span>
-                      <span className="text-cyan-300">
-                        Tier {pos.authority_tier}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         )}
 
-        {/* Self-Healing Corpus Auto-Redline PR Patch Drawer */}
-        {autoPrs.length > 0 && (
-          <div className="mt-5 rounded-xl bg-slate-950 border border-cyan-500/30 p-4">
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <GitPullRequest className="w-4 h-4 text-cyan-400" />
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">
-                  Self-Healing Corpus Patch (Automated Redline PR)
-                </span>
-              </div>
-              <span className="text-xs font-mono text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20">
-                {corpusHygiene?.infected_documents || autoPrs.length} Stale Doc(s) Flagged for Auto-Remediation
-              </span>
+        {/* Governing Active Position */}
+        {governingPositions.length > 0 && (
+          <div className="p-5 border border-[#C4F82A]/40 bg-black/40">
+            <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#C4F82A]/20 text-[#C4F82A] text-[10px] tracking-widest uppercase font-bold">
+              <span>[+] GOVERNING ACTIVE CLAUSE</span>
+              <span>ENFORCED</span>
             </div>
-            <pre className="text-xs font-mono overflow-x-auto text-emerald-300 bg-slate-900/90 p-3 rounded-lg border border-slate-800 whitespace-pre-wrap leading-relaxed">
-              {autoPrs[0].unified_diff_patch}
-            </pre>
+            {governingPositions.map((pos) => (
+              <div key={pos.doc_id} className="space-y-1.5 mb-4 last:mb-0">
+                <div className="text-bone font-medium font-sans text-sm">{pos.title}</div>
+                <div className="text-bone text-xs leading-relaxed">
+                  "{pos.claim_text}"
+                </div>
+                <div className="text-[10px] text-zinc pt-2 border-t border-[#F4F3EF]/5 flex items-center justify-between">
+                  <span>DOC: {pos.doc_id}</span>
+                  <span>DATE: {pos.effective_date}</span>
+                  <span className="text-[#C4F82A]">TIER {pos.authority_tier}</span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      {/* Auto-Redline PR Patch Drawer */}
+      {autoPrs.length > 0 && (
+        <div className="mt-5 border border-[#F4F3EF]/10 bg-black/70 p-4 font-mono text-xs">
+          <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#F4F3EF]/10">
+            <div className="flex items-center gap-2 text-[#C4F82A]">
+              <GitPullRequest className="w-3.5 h-3.5" />
+              <span className="text-[10px] tracking-widest uppercase font-bold">
+                [SELF-HEALING CORPUS AST REDLINE PR]
+              </span>
+            </div>
+            <span className="text-zinc text-[11px]">
+              {corpusHygiene?.infected_documents || autoPrs.length} Stale Document(s) Flagged
+            </span>
+          </div>
+          <pre className="text-[11px] text-[#C4F82A] bg-black p-3 border border-[#F4F3EF]/10 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+            {autoPrs[0].unified_diff_patch}
+          </pre>
+        </div>
+      )}
     </div>
   )
 }

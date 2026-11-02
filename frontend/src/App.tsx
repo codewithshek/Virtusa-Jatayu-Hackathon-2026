@@ -2,15 +2,6 @@ import React, { useState, useEffect } from 'react'
 import Lenis from 'lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import {
-  ShieldCheck,
-  Cpu,
-  Hash,
-  Terminal,
-  Activity,
-  Layers,
-  Sparkles
-} from 'lucide-react'
 
 import { HeroScene3D, SlabData } from './components/HeroScene3D'
 import { CinematicParallaxSection } from './components/CinematicParallaxSection'
@@ -27,7 +18,7 @@ gsap.registerPlugin(ScrollTrigger)
 export default function App() {
   const [response, setResponse] = useState<TruthGuardResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [dagData, setDagData] = useState<{ nodes: DocumentNode[], edges: EdgeData[] } | null>(null)
+  const [dagData, setDagData] = useState<{ nodes: DocumentNode[]; edges: EdgeData[] } | null>(null)
   const [hoveredSlab, setHoveredSlab] = useState<SlabData | null>(null)
 
   // 1. Lenis Smooth Scroll Synced with GSAP ScrollTrigger & Ticker (Awwwards SOTM standard)
@@ -92,40 +83,35 @@ export default function App() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#03060c] text-slate-100 flex flex-col selection:bg-emerald-500/30 selection:text-emerald-300">
+    <div className="relative min-h-screen bg-[#050506] text-[#F4F3EF] flex flex-col font-sans selection:bg-[#C4F82A] selection:text-black">
       {/* ===================================================================== */}
-      {/* LAYER 1: Persistent Fixed Full-Viewport WebGL Stage (z-0)              */}
+      {/* LAYER 1: Full-Viewport Post-Processed WebGL Stage (z-0)                */}
       {/* ===================================================================== */}
       <HeroScene3D onHoverSlab={setHoveredSlab} />
 
       {/* ===================================================================== */}
-      {/* Minimal Header                                                        */}
+      {/* Minimal Architectural Navigation Header                               */}
       {/* ===================================================================== */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#03060c]/70 border-b border-white/5 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-[#050506]/85 border-b border-[#F4F3EF]/10 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between font-mono text-xs">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/40 flex items-center justify-center font-display font-bold text-emerald-400">
-              T
-            </div>
-            <div>
-              <span className="text-sm font-bold tracking-tight text-white font-display">
-                TruthGuard
-              </span>
-              <span className="hidden sm:inline-block ml-2 text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400">
-                Awwwards SOTM Edition
-              </span>
-            </div>
+            <span className="font-display font-extrabold text-sm text-bone tracking-tight">
+              TRUTHGUARD
+            </span>
+            <span className="text-zinc">/</span>
+            <span className="text-ash tracking-widest text-[11px] hidden sm:inline-block">
+              [EPISTEMIC SPECTROGRAPH // V3]
+            </span>
           </div>
 
-          <div className="flex items-center gap-4 text-xs font-mono">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/80 border border-slate-800 text-slate-300">
-              <Cpu className="w-3.5 h-3.5 text-emerald-400" />
-              <span>NVIDIA NIM: <strong className="text-emerald-400 font-normal">Llama 3.1 70B</strong></span>
+          <div className="flex items-center gap-4 text-[11px]">
+            <div className="flex items-center gap-2 px-3 py-1 border border-[#F4F3EF]/10 bg-black/60 text-ash">
+              <span className="w-1.5 h-1.5 bg-[#C4F82A] animate-pulse" />
+              <span>NVIDIA NIM // Llama 3.1 70B</span>
             </div>
             {response?.provenance_sha256 && (
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/80 border border-slate-800 text-slate-300">
-                <Hash className="w-3.5 h-3.5 text-cyan-400" />
-                <span>SHA-256: <strong className="text-cyan-300 font-normal">{response.provenance_sha256.slice(0, 10)}...</strong></span>
+              <div className="hidden md:flex items-center gap-2 px-3 py-1 border border-[#F4F3EF]/10 bg-black/60 text-zinc">
+                <span className="text-bone">SHA256: {response.provenance_sha256.slice(0, 12)}...</span>
               </div>
             )}
           </div>
@@ -133,59 +119,64 @@ export default function App() {
       </header>
 
       {/* ===================================================================== */}
-      {/* LAYER 2: 4-Beat Pinned Scroll Narrative & Monumental Typography (z-10) */}
+      {/* LAYER 2: 4-Beat Pinned Scroll Narrative (z-10)                        */}
       {/* ===================================================================== */}
       <div className="relative z-10 w-full">
         <CinematicParallaxSection hoveredSlab={hoveredSlab} />
       </div>
 
       {/* ===================================================================== */}
-      {/* LAYER 3: Interactive Forensic Workbench Console & Results (z-20)       */}
+      {/* LAYER 3: Interactive Forensic Terminal & Results (z-20)               */}
       {/* ===================================================================== */}
-      <section id="workbench-console" className="relative z-20 w-full pt-16 pb-24 px-6 md:px-12 bg-gradient-to-b from-transparent via-[#03060c]/95 to-[#03060c] border-t border-slate-800/60">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Sub-heading */}
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono mb-3 uppercase tracking-wider">
-              <Terminal className="w-3.5 h-3.5" />
-              <span>Interactive Verification Console</span>
+      <section
+        id="workbench-terminal"
+        className="relative z-20 w-full pt-20 pb-28 px-6 md:px-12 border-t border-[#F4F3EF]/12 bg-[#050506]/95 backdrop-blur-xl"
+      >
+        <div className="max-w-7xl mx-auto space-y-12">
+          {/* Section Heading */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between pb-6 border-b border-[#F4F3EF]/10 gap-4">
+            <div>
+              <div className="font-mono text-[11px] tracking-[0.2em] text-[#C4F82A] uppercase mb-2">
+                [SYS.00 // INTERACTIVE VERIFICATION WORKBENCH]
+              </div>
+              <h2 className="text-3xl md:text-5xl font-bold font-display text-bone tracking-tight">
+                Forensic Audit Terminal.
+              </h2>
             </div>
-            <h2 className="text-2xl md:text-4xl font-bold text-white tracking-tight font-display mb-3">
-              Forensic Attack Vectors & Query Arena
-            </h2>
-            <p className="text-xs md:text-sm text-slate-400 font-light">
-              Select an adversarial policy conflict scenario below or enter your own query to trigger the 4-agent verification loop.
-            </p>
+            <div className="font-mono text-xs text-ash max-w-md">
+              Execute adversarial policy scenarios or custom queries across inconsistent document layers.
+            </div>
           </div>
 
-          {/* Live Query Console */}
+          {/* Query Terminal */}
           <QueryConsole
             onSubmit={handleQuery}
             onLoadScenario={handleQuery}
             isLoading={isLoading}
           />
 
-          {/* Results Telemetry Arena */}
+          {/* Results Telemetry */}
           {response && (
-            <main id="verification-results" className="mt-12 scroll-mt-24 space-y-8">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+            <main id="verification-results" className="pt-4 scroll-mt-24 space-y-8">
+              {/* Disposition Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-[#F4F3EF]/10 font-mono text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                  <h3 className="text-xl font-bold text-white font-display">
-                    Epistemic Verification Telemetry
-                  </h3>
+                  <span className="w-2 h-2 bg-[#C4F82A] animate-ping" />
+                  <span className="font-bold text-bone uppercase tracking-wider">
+                    [TELEMETRY DISPOSITION REPORT]
+                  </span>
                 </div>
-                <div className="text-xs font-mono text-slate-400">
-                  Total Latency: <strong className="text-emerald-400">{response.latency_ms?.toFixed(0) || 0}ms</strong>
+                <div className="text-zinc">
+                  LATENCY: <strong className="text-bone">{response.latency_ms?.toFixed(0) || 0} MS</strong>
                 </div>
               </div>
 
-              {/* Refusal Banner on Unresolvable Contradiction */}
+              {/* Abstention Gate Alert if Unresolvable */}
               {response.status === ResolutionStatus.UNRESOLVABLE_ABSTAIN && (
                 <AbstentionBanner query={response.query} />
               )}
 
-              {/* 3-Column Diagnostic Matrix */}
+              {/* Diagnostic Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div className="lg:col-span-1">
                   <AgentTraceTimeline trace={response.trace || []} latency={response.latency_ms} />
@@ -207,7 +198,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Full Width: Critic Claim-by-Claim Audit */}
+              {/* Full Width: Claim Audit Matrix */}
               {response.claim_audits && response.claim_audits.length > 0 && (
                 <div className="pt-2">
                   <ClaimAuditTable audits={response.claim_audits} />
@@ -219,17 +210,15 @@ export default function App() {
       </section>
 
       {/* Global Minimal Footer */}
-      <footer className="relative z-20 border-t border-slate-900 bg-[#03060c] py-8 px-6 text-xs text-slate-500 font-mono">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>TruthGuard · Forensic Epistemic Engine · Virtusa Jatayu Season 6</div>
-          <div className="flex items-center gap-4 text-slate-400">
-            <span>NVIDIA NIM Llama 3.1 70B</span>
+      <footer className="relative z-20 border-t border-[#F4F3EF]/10 bg-[#050506] py-10 px-6 font-mono text-xs text-zinc">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>TRUTHGUARD // VIRTUSA JATAYU HACKATHON 2026 // TIME BU</div>
+          <div className="flex items-center gap-4 text-ash">
+            <span>THREE.JS R187</span>
             <span>·</span>
-            <span>Three.js r187</span>
+            <span>POST-PROCESSING BLOOM</span>
             <span>·</span>
-            <span>GSAP ScrollTrigger</span>
-            <span>·</span>
-            <span>Lenis 1.3</span>
+            <span>LENIS 1.3</span>
           </div>
         </div>
       </footer>

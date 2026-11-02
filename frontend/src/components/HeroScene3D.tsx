@@ -1,5 +1,10 @@
 import React, { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -18,6 +23,51 @@ interface HeroScene3DProps {
   onHoverSlab?: (slab: SlabData | null) => void
 }
 
+// Custom Cinema Lens Post-Processing Shader (Chromatic Dispersion + Tactile 35mm Film Grain + Vignette)
+const CinemaLensShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uTime: { value: 0 },
+    uAberration: { value: 0.0022 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uTime;
+    uniform float uAberration;
+    varying vec2 vUv;
+
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+    }
+
+    void main() {
+      vec2 dist = vUv - 0.5;
+      vec2 offset = dist * uAberration * (1.0 + dot(dist, dist) * 2.5);
+      float r = texture2D(tDiffuse, vUv + offset).r;
+      float g = texture2D(tDiffuse, vUv).g;
+      float b = texture2D(tDiffuse, vUv - offset).b;
+      vec3 col = vec3(r, g, b);
+
+      // Subtle 35mm film grain
+      float grain = (hash(vUv * 800.0 + uTime) - 0.5) * 0.032;
+      col += grain;
+
+      // Optical vignette
+      float vig = smoothstep(0.95, 0.25, length(dist));
+      col *= mix(0.55, 1.0, vig);
+
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `,
+}
+
 export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -25,258 +75,299 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
     const container = containerRef.current
     if (!container) return
 
-    // 1. Scene, Camera & ACESFilmic Renderer
-    const scene = new THREE.Scene()
-    scene.fog = new THREE.FogExp2(0x03060c, 0.045)
-
-    const camera = new THREE.PerspectiveCamera(
-      38,
-      container.clientWidth / container.clientHeight,
-      0.1,
-      100
-    )
-    camera.position.set(0, 0.4, 8.5)
-
+    // 1. Renderer & Real Studio HDRI Environment via PMREMGenerator + RoomEnvironment
     const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
+      antialias: false,
       powerPreference: 'high-performance',
     })
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.35
+    renderer.toneMappingExposure = 1.15
     renderer.outputColorSpace = THREE.SRGBColorSpace
     container.appendChild(renderer.domElement)
 
-    // 2. Procedural Studio Lighting (Key, Crimson Conflict Rim, Emerald Authority Fill)
-    const ambient = new THREE.AmbientLight(0x0b1324, 2.2)
-    scene.add(ambient)
+    const scene = new THREE.Scene()
+    scene.background = new THREE.Color(0x050506)
+    scene.fog = new THREE.FogExp2(0x050506, 0.055)
 
-    const keyLight = new THREE.DirectionalLight(0xe2e8f0, 3.2)
-    keyLight.position.set(4, 6, 5)
+    // CRITICAL FOR REAL GLASS/METAL: Generate procedural HDRI environment map
+    const pmremGenerator = new THREE.PMREMGenerator(renderer)
+    scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture
+
+    const camera = new THREE.PerspectiveCamera(
+      35,
+      container.clientWidth / container.clientHeight,
+      0.1,
+      100
+    )
+    camera.position.set(1.2, 0.2, 8.2)
+
+    // 2. Post-Processing Pipeline (RenderPass -> UnrealBloomPass -> CinemaLensShader)
+    const composer = new EffectComposer(renderer)
+    composer.addPass(new RenderPass(scene, camera))
+
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(container.clientWidth, container.clientHeight),
+      0.65, // strength
+      0.45, // radius
+      0.72 // threshold
+    )
+    composer.addPass(bloomPass)
+
+    const lensPass = new ShaderPass(CinemaLensShader)
+    composer.addPass(lensPass)
+
+    // 3. Dramatic Studio Lighting
+    const keyLight = new THREE.DirectionalLight(0xf4f3ef, 2.8)
+    keyLight.position.set(5, 7, 4)
     scene.add(keyLight)
 
-    const emeraldRim = new THREE.PointLight(0x10b981, 8, 18)
-    emeraldRim.position.set(3.5, 2.0, 2.5)
-    scene.add(emeraldRim)
+    const signalLight = new THREE.PointLight(0xc4f82a, 6, 15)
+    signalLight.position.set(2.5, 2.0, 3.0)
+    scene.add(signalLight)
 
-    const crimsonConflictLight = new THREE.PointLight(0xf43f5e, 0, 16)
-    crimsonConflictLight.position.set(-3.5, -1.0, 2.5)
-    scene.add(crimsonConflictLight)
+    const conflictLight = new THREE.PointLight(0xff3b1d, 0, 15)
+    conflictLight.position.set(-2.5, -1.5, 3.0)
+    scene.add(conflictLight)
 
-    // 3. Central Optical Dispersion Prism (3-Sided Forensic Crystal)
-    const stageGroup = new THREE.Group()
-    scene.add(stageGroup)
+    // 4. Master Assembly: The "Epistemic Gyro-Spectrograph"
+    const rig = new THREE.Group()
+    rig.position.x = 1.35 // Offset right on desktop for asymmetric Swiss editorial balance
+    scene.add(rig)
 
-    const prismGeo = new THREE.CylinderGeometry(1.15, 1.15, 2.6, 3, 1)
-    const prismMat = new THREE.MeshPhysicalMaterial({
-      color: 0x0f172a,
-      transmission: 0.92,
-      opacity: 1,
-      transparent: true,
-      metalness: 0.1,
-      roughness: 0.08,
-      ior: 1.62,
-      thickness: 2.2,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      attenuationColor: new THREE.Color(0x10b981),
-      attenuationDistance: 2.5,
-    })
-    const prismMesh = new THREE.Mesh(prismGeo, prismMat)
-    prismMesh.rotation.z = Math.PI / 6
-    stageGroup.add(prismMesh)
-
-    // Sharp Precision Edge Wireframe on Prism
-    const prismEdges = new THREE.LineSegments(
-      new THREE.EdgesGeometry(prismGeo),
-      new THREE.LineBasicMaterial({ color: 0x34d399, transparent: true, opacity: 0.55 })
-    )
-    prismMesh.add(prismEdges)
-
-    // 4. Custom GLSL Laser Scanner Plane (Dual-Clock uTime + uConflictMix)
-    const scannerShaderMat = new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      blending: THREE.AdditiveBlending,
+    // 4A. Inner Living Shader Core (Domain-Warped Energy Nucleus)
+    const nucleusMat = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
-        uConflictMix: { value: 0 },
+        uConflict: { value: 0 },
       },
       vertexShader: `
-        varying vec2 vUv;
+        uniform float uTime;
+        uniform float uConflict;
+        varying vec3 vNormal;
+        varying float vDisplacement;
         void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          vNormal = normal;
+          float d = sin(position.x * 4.0 + uTime * 2.2) * cos(position.y * 4.0 - uTime * 1.8) * 0.12;
+          d += sin(position.z * 8.0 + uTime * 4.0) * (0.04 + uConflict * 0.08);
+          vDisplacement = d;
+          vec3 newPos = position + normal * d;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
         }
       `,
       fragmentShader: `
-        uniform float uTime;
-        uniform float uConflictMix;
-        varying vec2 vUv;
-
+        uniform float uConflict;
+        varying vec3 vNormal;
+        varying float vDisplacement;
         void main() {
-          float distFromCenter = abs(vUv.y - 0.5) * 2.0;
-          float coreBeam = exp(-distFromCenter * 14.0);
-          float grid = step(0.92, fract(vUv.x * 28.0 + uTime * 0.4));
-          vec3 emerald = vec3(0.063, 0.725, 0.506);
-          vec3 crimson = vec3(0.957, 0.247, 0.369);
-          vec3 beamColor = mix(emerald, crimson, uConflictMix * step(0.5, vUv.x));
-          float alpha = (coreBeam * 0.75 + grid * coreBeam * 0.35) * (1.0 - smoothstep(0.35, 0.5, abs(vUv.x - 0.5)));
-          gl_FragColor = vec4(beamColor, alpha);
+          float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.2);
+          vec3 lime = vec3(0.768, 0.972, 0.164);      // #C4F82A Signal Lime
+          vec3 vermilion = vec3(1.0, 0.231, 0.114); // #FF3B1D Conflict Vermilion
+          vec3 base = vec3(0.04, 0.05, 0.06);
+          vec3 glow = mix(lime, vermilion, uConflict);
+          vec3 col = mix(base, glow, fresnel * 0.85 + smoothstep(0.02, 0.14, vDisplacement) * 0.65);
+          gl_FragColor = vec4(col, 1.0);
         }
       `,
     })
-    const scannerPlane = new THREE.Mesh(new THREE.PlaneGeometry(6.8, 0.55), scannerShaderMat)
-    scannerPlane.rotation.x = Math.PI / 2
-    stageGroup.add(scannerPlane)
+    const nucleusMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.78, 24), nucleusMat)
+    rig.add(nucleusMesh)
 
-    // 5. Five Forensic Policy Monolith Slabs (Representing the 5 Authority Tiers)
+    // 4B. Outer Faceted Refractive Crystal Housing (Real Transmission Glass with Chromatic IOR)
+    const crystalGeo = new THREE.OctahedronGeometry(1.38, 2)
+    const crystalMat = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      transmission: 0.96,
+      opacity: 1,
+      transparent: true,
+      roughness: 0.06,
+      metalness: 0.0,
+      ior: 1.68,
+      thickness: 2.8,
+      specularIntensity: 1.0,
+      attenuationColor: new THREE.Color(0xd4d4d8),
+      attenuationDistance: 3.0,
+      flatShading: true,
+    })
+    const crystalMesh = new THREE.Mesh(crystalGeo, crystalMat)
+    rig.add(crystalMesh)
+
+    // 4C. Three Machined Anodized Titanium Gimbal Rings + 120 Instanced Precision Caliper Ticks
+    const titaniumMat = new THREE.MeshStandardMaterial({
+      color: 0x18181b,
+      metalness: 0.92,
+      roughness: 0.22,
+    })
+    const gimbal1 = new THREE.Mesh(new THREE.TorusGeometry(1.85, 0.028, 24, 128), titaniumMat)
+    const gimbal2 = new THREE.Mesh(new THREE.TorusGeometry(2.25, 0.018, 24, 128), titaniumMat)
+    gimbal2.rotation.x = Math.PI / 2.6
+    const gimbal3 = new THREE.Mesh(new THREE.TorusGeometry(2.65, 0.012, 16, 128), titaniumMat)
+    gimbal3.rotation.y = Math.PI / 3
+    rig.add(gimbal1, gimbal2, gimbal3)
+
+    // 120 Instanced Vernier Scale Tick Marks around Gimbal 2
+    const tickCount = 120
+    const tickGeo = new THREE.BoxGeometry(0.012, 0.09, 0.012)
+    const tickMat = new THREE.MeshBasicMaterial({ color: 0xf4f3ef, transparent: true, opacity: 0.55 })
+    const tickInstanced = new THREE.InstancedMesh(tickGeo, tickMat, tickCount)
+    const dummy = new THREE.Object3D()
+    for (let i = 0; i < tickCount; i++) {
+      const angle = (i / tickCount) * Math.PI * 2
+      const r = 2.25
+      dummy.position.set(Math.cos(angle) * r, Math.sin(angle) * r, 0)
+      dummy.rotation.z = angle + Math.PI / 2
+      dummy.scale.y = i % 10 === 0 ? 2.2 : 1.0
+      dummy.updateMatrix()
+      tickInstanced.setMatrixAt(i, dummy.matrix)
+    }
+    gimbal2.add(tickInstanced)
+
+    // 5. Five Architectural Optical Document Blades + Fiber-Optic Bezier Conduits
     const slabConfigs: SlabData[] = [
-      { id: 'REG-2025-09', tier: 'TIER 1 · REGULATORY MANDATE', tierNum: 1, clause: 'MFA: FIDO2 Hardware Key Required', status: 'GOVERNING', color: '#10b981' },
-      { id: 'SEC-2025-11', tier: 'TIER 2 · SECURITY DIRECTIVE', tierNum: 2, clause: 'Zero-Trust Enclave Override', status: 'GOVERNING', color: '#06b6d4' },
-      { id: 'HR-POL-2024 v2.1', tier: 'TIER 3 · FORMAL POLICY', tierNum: 3, clause: 'Remote Work: Max 1 Day/Week', status: 'CONFLICTING', color: '#f59e0b' },
-      { id: 'ENG-MEMO-2025', tier: 'TIER 4 · DEPT MEMO', tierNum: 4, clause: 'Exception: Up to 4 Days/Week', status: 'SUPERSEDED', color: '#f43f5e' },
-      { id: 'FAQ-2023-LEGACY', tier: 'TIER 5 · GENERAL FAQ', tierNum: 5, clause: 'SMS 2FA Permitted [REVOKED]', status: 'PRUNED', color: '#ef4444' },
+      { id: 'REG-2025-09', tier: 'TIER 01 // MANDATE', tierNum: 1, clause: 'FIDO2 HARDWARE TOKEN ENFORCED', status: 'GOVERNING', color: '#C4F82A' },
+      { id: 'SEC-2025-11', tier: 'TIER 02 // DIRECTIVE', tierNum: 2, clause: 'ZERO-TRUST ENCLAVE OVERRIDE', status: 'ACTIVE', color: '#F4F3EF' },
+      { id: 'HR-POL-2024', tier: 'TIER 03 // POLICY', tierNum: 3, clause: 'REMOTE WORK: MAX 1 DAY/WK', status: 'CONFLICTING', color: '#FF3B1D' },
+      { id: 'ENG-MEMO-25', tier: 'TIER 04 // ADDENDUM', tierNum: 4, clause: 'EXCEPTION: UP TO 4 DAYS/WK', status: 'SUPERSEDED', color: '#FF3B1D' },
+      { id: 'FAQ-2023-OLD', tier: 'TIER 05 // LEGACY FAQ', tierNum: 5, clause: 'SMS 2FA PERMITTED [REVOKED]', status: 'PRUNED', color: '#71717A' },
     ]
 
-    const createSlabTexture = (cfg: SlabData) => {
+    const createSwissBladeTexture = (cfg: SlabData) => {
       const canvas = document.createElement('canvas')
       canvas.width = 1024
-      canvas.height = 640
+      canvas.height = 512
       const ctx = canvas.getContext('2d')!
-      
-      // Dark slate background
-      ctx.fillStyle = '#060a12'
-      ctx.fillRect(0, 0, 1024, 640)
+      ctx.fillStyle = '#09090b'
+      ctx.fillRect(0, 0, 1024, 512)
 
-      // Outer border
-      ctx.strokeStyle = cfg.color
-      ctx.lineWidth = 6
-      ctx.strokeRect(20, 20, 984, 600)
-
-      // Header tier banner
-      ctx.fillStyle = cfg.color
-      ctx.font = 'bold 32px "JetBrains Mono", monospace'
-      ctx.fillText(cfg.tier, 50, 85)
-
-      // Document ID
-      ctx.fillStyle = '#f8fafc'
-      ctx.font = 'bold 52px "Plus Jakarta Sans", sans-serif'
-      ctx.fillText(cfg.id, 50, 170)
-
-      // Clause body
-      ctx.fillStyle = '#cbd5e1'
-      ctx.font = '36px "JetBrains Mono", monospace'
-      ctx.fillText(cfg.clause, 50, 270)
-
-      // Telemetry metadata box
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'
-      ctx.fillRect(50, 360, 924, 110)
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
+      // Hairline architectural border + corner crosshairs
+      ctx.strokeStyle = 'rgba(244, 243, 239, 0.22)'
       ctx.lineWidth = 2
-      ctx.strokeRect(50, 360, 924, 110)
+      ctx.strokeRect(24, 24, 976, 464)
 
-      ctx.fillStyle = '#94a3b8'
-      ctx.font = '24px "JetBrains Mono", monospace'
-      ctx.fillText(`STATUS: ${cfg.status}  |  PRECEDENCE: TIER ${cfg.tierNum}`, 75, 410)
-      ctx.fillText(`HASH: 0x9F4A8E2C...B71D  |  VERIFIED ENTAILMENT`, 75, 445)
-
-      // Footer brand stamp
+      // Left vertical signal bar
       ctx.fillStyle = cfg.color
-      ctx.font = 'bold 22px "JetBrains Mono", monospace'
-      ctx.fillText(`TRUTHGUARD FORENSIC AST SLAB // SPEC-2026`, 50, 560)
+      ctx.fillRect(24, 24, 10, 464)
+
+      ctx.fillStyle = cfg.color
+      ctx.font = '600 24px "JetBrains Mono", monospace'
+      ctx.fillText(cfg.tier, 64, 82)
+
+      ctx.fillStyle = '#F4F3EF'
+      ctx.font = '700 60px "Syne", sans-serif'
+      ctx.fillText(cfg.id, 64, 168)
+
+      ctx.fillStyle = '#A1A1AA'
+      ctx.font = '400 28px "JetBrains Mono", monospace'
+      ctx.fillText(cfg.clause, 64, 248)
+
+      // Bottom technical grid
+      ctx.strokeStyle = 'rgba(244, 243, 239, 0.12)'
+      ctx.beginPath()
+      ctx.moveTo(24, 380)
+      ctx.lineTo(1000, 380)
+      ctx.stroke()
+
+      ctx.fillStyle = '#71717A'
+      ctx.font = '500 22px "JetBrains Mono", monospace'
+      ctx.fillText(`DISPOSITION: ${cfg.status}`, 64, 435)
+
+      ctx.fillStyle = cfg.color
+      ctx.fillText(`SHA256 // 0x9F4A...8E2C`, 640, 435)
 
       const tex = new THREE.CanvasTexture(canvas)
-      tex.anisotropy = 4
+      tex.anisotropy = 8
       return tex
     }
 
-    const slabs: THREE.Mesh[] = []
-    const slabBaseTransforms: { x: number; y: number; z: number; ry: number }[] = [
-      { x: -2.5, y: 1.25, z: 0.6, ry: 0.32 },
-      { x: 2.5, y: 1.15, z: 0.5, ry: -0.32 },
-      { x: -2.7, y: -0.15, z: 0.9, ry: 0.28 },
-      { x: 2.7, y: -0.25, z: 0.9, ry: -0.28 },
-      { x: 0.0, y: -1.55, z: -0.8, ry: 0.0 },
+    const blades: THREE.Mesh[] = []
+    const bladeCoords = [
+      { x: -2.55, y: 1.35, z: 0.5, ry: 0.35 },
+      { x: 2.35, y: 1.25, z: 0.4, ry: -0.35 },
+      { x: -2.65, y: -0.25, z: 0.85, ry: 0.28 },
+      { x: 2.45, y: -0.35, z: 0.85, ry: -0.28 },
+      { x: 0.0, y: -1.75, z: -0.9, ry: 0.0 },
     ]
 
-    const slabGeo = new THREE.BoxGeometry(1.85, 1.12, 0.06)
+    const bladeGeo = new THREE.BoxGeometry(1.75, 0.88, 0.04)
     slabConfigs.forEach((cfg, idx) => {
-      const tex = createSlabTexture(cfg)
+      const tex = createSwissBladeTexture(cfg)
       const mat = new THREE.MeshPhysicalMaterial({
         map: tex,
-        roughness: 0.18,
-        metalness: 0.35,
+        roughness: 0.15,
+        metalness: 0.5,
         clearcoat: 1.0,
-        transparent: true,
-        opacity: 0.95,
+        clearcoatRoughness: 0.08,
       })
-      const mesh = new THREE.Mesh(slabGeo, mat)
-      const base = slabBaseTransforms[idx]
+      const mesh = new THREE.Mesh(bladeGeo, mat)
+      const base = bladeCoords[idx]
       mesh.position.set(base.x, base.y, base.z)
       mesh.rotation.y = base.ry
       mesh.userData = { index: idx, base, cfg }
-      stageGroup.add(mesh)
-      slabs.push(mesh)
+      rig.add(mesh)
+      blades.push(mesh)
+
+      // Fiber-optic Bezier conduit linking each blade to the central crystal core
+      const curve = new THREE.CubicBezierCurve3(
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(base.x * 0.4, base.y * 0.8, base.z * 0.5),
+        new THREE.Vector3(base.x * 0.8, base.y * 0.3, base.z),
+        new THREE.Vector3(base.x, base.y, base.z)
+      )
+      const tubeGeo = new THREE.TubeGeometry(curve, 32, 0.008, 8, false)
+      const tubeMat = new THREE.MeshBasicMaterial({
+        color: cfg.color,
+        transparent: true,
+        opacity: 0.35,
+      })
+      rig.add(new THREE.Mesh(tubeGeo, tubeMat))
     })
 
-    // 6. Raycaster for Interactive Hover Inspection on Slabs
-    const raycaster = new THREE.Raycaster()
-    const pointer = new THREE.Vector2(999, 999)
-    const mouseSmooth = { x: 0, y: 0, tx: 0, ty: 0 }
-
-    const onPointerMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect()
-      mouseSmooth.tx = ((e.clientX - rect.left) / rect.width) * 2 - 1
-      mouseSmooth.ty = -(((e.clientY - rect.top) / rect.height) * 2 - 1)
-      pointer.set(mouseSmooth.tx, mouseSmooth.ty)
-    }
-    window.addEventListener('mousemove', onPointerMove)
-
-    // 7. GSAP ScrollTrigger 4-Beat Choreography
-    const scrollState = {
-      beat: 0,
-      conflictIntensity: 0,
-      dagSpread: 0,
-      burnProgress: 0,
-      merkleLock: 0,
-    }
-
+    // 6. ScrollTrigger Multi-Beat Camera & Rig Choreography
+    const scrollState = { conflict: 0, dagSpread: 0, merkleLock: 0 }
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: document.body,
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 1.0,
+          scrub: 0.8,
         },
       })
 
-      // Beat 1 -> Beat 2 (0% -> 35%): Deontic Contradiction Isolation
-      tl.to(camera.position, { z: 6.8, y: 0.1, ease: 'power2.inOut' }, 0)
-        .to(prismMesh.rotation, { y: Math.PI * 1.25, x: 0.25, ease: 'power2.inOut' }, 0)
-        .to(scrollState, { conflictIntensity: 1, ease: 'power2.inOut' }, 0)
-        .to(crimsonConflictLight, { intensity: 12, ease: 'power2.inOut' }, 0)
+      // Beat 1 -> 2: Center the rig and trigger Vermilion Deontic Conflict state
+      tl.to(rig.position, { x: 0, y: 0.1, ease: 'power2.inOut' }, 0)
+        .to(camera.position, { x: 0, z: 6.4, ease: 'power2.inOut' }, 0)
+        .to(scrollState, { conflict: 1, ease: 'power2.inOut' }, 0)
+        .to(conflictLight, { intensity: 14, ease: 'power2.inOut' }, 0)
+        .to(lensPass.uniforms.uAberration, { value: 0.0048, ease: 'power2.inOut' }, 0)
 
-      // Beat 2 -> Beat 3 (35% -> 70%): Bi-Temporal DAG Formation & Silent Revocation Dissolve
-      tl.to(scrollState, { dagSpread: 1, conflictIntensity: 0.2, burnProgress: 1, ease: 'power3.inOut' }, 0.4)
-        .to(camera.position, { z: 7.8, y: -0.4, ease: 'power3.inOut' }, 0.4)
-        .to(crimsonConflictLight, { intensity: 2, ease: 'power3.inOut' }, 0.4)
-        .to(emeraldRim, { intensity: 14, ease: 'power3.inOut' }, 0.4)
+      // Beat 2 -> 3: DAG Precedence Alignment
+      tl.to(scrollState, { conflict: 0, dagSpread: 1, ease: 'power3.inOut' }, 0.38)
+        .to(camera.position, { z: 7.4, y: -0.2, ease: 'power3.inOut' }, 0.38)
+        .to(conflictLight, { intensity: 0, ease: 'power3.inOut' }, 0.38)
+        .to(lensPass.uniforms.uAberration, { value: 0.0018, ease: 'power3.inOut' }, 0.38)
 
-      // Beat 3 -> Beat 4 (70% -> 100%): Merkle Seal & Live Workbench Dock
-      tl.to(scrollState, { merkleLock: 1, ease: 'power2.inOut' }, 0.75)
-        .to(stageGroup.position, { y: 0.6, z: -1.2, ease: 'power2.inOut' }, 0.75)
-        .to(camera.position, { z: 8.8, y: 0.0, ease: 'power2.inOut' }, 0.75)
+      // Beat 3 -> 4: Merkle Seal Compression
+      tl.to(scrollState, { merkleLock: 1, dagSpread: 0, ease: 'power2.inOut' }, 0.72)
+        .to(rig.position, { y: 0.8, z: -1.5, ease: 'power2.inOut' }, 0.72)
     })
 
-    // 8. Dual-Clock Render Loop (uScroll + uTime + uMouse)
+    // 7. Pointer Raycasting & Dual-Clock Render Loop
+    const raycaster = new THREE.Raycaster()
+    const pointer = new THREE.Vector2(999, 999)
+    const mouseSmooth = { x: 0, y: 0, tx: 0, ty: 0 }
+
+    const onPointerMove = (e: MouseEvent) => {
+      mouseSmooth.tx = (e.clientX / window.innerWidth) * 2 - 1
+      mouseSmooth.ty = -(e.clientY / window.innerHeight) * 2 + 1
+      pointer.set(mouseSmooth.tx, mouseSmooth.ty)
+    }
+    window.addEventListener('mousemove', onPointerMove)
+
     const clock = new THREE.Clock()
     let rafId: number
-    let currentHoveredSlab: SlabData | null = null
+    let lastHoveredId: string | null = null
 
     const animate = () => {
       rafId = requestAnimationFrame(animate)
@@ -285,84 +376,67 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
       mouseSmooth.x += (mouseSmooth.tx - mouseSmooth.x) * 0.06
       mouseSmooth.y += (mouseSmooth.ty - mouseSmooth.y) * 0.06
 
-      // Update Laser Scanner Plane
-      scannerShaderMat.uniforms.uTime.value = t
-      scannerShaderMat.uniforms.uConflictMix.value = scrollState.conflictIntensity
-      scannerPlane.position.y = Math.sin(t * 1.4) * 1.35
+      nucleusMat.uniforms.uTime.value = t
+      nucleusMat.uniforms.uConflict.value = scrollState.conflict
+      lensPass.uniforms.uTime.value = t
 
-      // Stage tilt with pointer
-      stageGroup.rotation.y = mouseSmooth.x * 0.28
-      stageGroup.rotation.x = -mouseSmooth.y * 0.16
-      prismMesh.rotation.y += 0.003
+      // Counter-rotating precision gimbals
+      crystalMesh.rotation.y = t * 0.18
+      crystalMesh.rotation.z = Math.sin(t * 0.4) * 0.15
 
-      // Raycast hover detection on individual policy slabs
+      gimbal1.rotation.y = -t * 0.22 + scrollState.conflict * 1.2
+      gimbal1.rotation.x = Math.sin(t * 0.3) * 0.25
+
+      gimbal2.rotation.z = t * 0.14 - scrollState.dagSpread * 0.8
+      gimbal3.rotation.x = t * 0.19
+
+      rig.rotation.y = mouseSmooth.x * 0.25
+      rig.rotation.x = -mouseSmooth.y * 0.15
+
       raycaster.setFromCamera(pointer, camera)
-      const hits = raycaster.intersectObjects(slabs)
+      const hits = raycaster.intersectObjects(blades)
       const hoveredMesh = hits.length > 0 ? hits[0].object : null
+      const hoveredCfg = hoveredMesh ? (hoveredMesh.userData.cfg as SlabData) : null
 
-      const newlyHoveredSlab = hoveredMesh ? (hoveredMesh.userData.cfg as SlabData) : null
-      if (newlyHoveredSlab?.id !== currentHoveredSlab?.id) {
-        currentHoveredSlab = newlyHoveredSlab
-        if (onHoverSlab) {
-          onHoverSlab(newlyHoveredSlab)
-        }
+      if ((hoveredCfg?.id || null) !== lastHoveredId) {
+        lastHoveredId = hoveredCfg?.id || null
+        if (onHoverSlab) onHoverSlab(hoveredCfg)
       }
 
-      slabs.forEach((slab, idx) => {
-        const { base } = slab.userData
-        const floatY = Math.sin(t * 1.6 + idx * 1.3) * 0.08
-        const isHovered = hoveredMesh === slab
+      blades.forEach((blade, idx) => {
+        const { base } = blade.userData
+        const isHovered = hoveredMesh === blade
+        const floatY = Math.sin(t * 1.5 + idx * 1.2) * 0.06
 
-        // Scroll-driven conflict pull for slabs 2 (HR-POL) and 3 (ENG-MEMO)
-        let conflictOffsetX = 0
-        let conflictOffsetZ = 0
+        let cx = 0
+        let cz = 0
         if (idx === 2) {
-          conflictOffsetX = scrollState.conflictIntensity * 1.3
-          conflictOffsetZ = scrollState.conflictIntensity * 1.0
+          cx = scrollState.conflict * 1.25
+          cz = scrollState.conflict * 0.95
         } else if (idx === 3) {
-          conflictOffsetX = -scrollState.conflictIntensity * 1.3
-          conflictOffsetZ = scrollState.conflictIntensity * 1.0
+          cx = -scrollState.conflict * 1.25
+          cz = scrollState.conflict * 0.95
         }
 
-        // DAG spread positioning in Beat 3
-        let dagOffsetX = 0
-        let dagOffsetY = 0
-        if (scrollState.dagSpread > 0) {
-          dagOffsetX = (idx - 2) * 0.65 * scrollState.dagSpread
-          dagOffsetY = (2 - idx) * 0.5 * scrollState.dagSpread
-        }
-
-        // Beat 3: Burn & dissolve superseded Slab #4 (FAQ-2023-LEGACY)
-        if (idx === 4) {
-          const mat = slab.material as THREE.MeshPhysicalMaterial
-          mat.opacity = Math.max(0.12, 0.95 - scrollState.burnProgress * 0.85)
-          slab.scale.setScalar(Math.max(0.7, 1.0 - scrollState.burnProgress * 0.25))
-        }
-
-        // Beat 4: Compress into Merkle lock
-        let merkleOffsetX = 0
-        let merkleOffsetZ = 0
-        if (scrollState.merkleLock > 0) {
-          merkleOffsetX = -base.x * scrollState.merkleLock * 0.7
-          merkleOffsetZ = -base.z * scrollState.merkleLock * 0.7
-        }
-
-        const targetScale = isHovered ? 1.12 : 1.0
-        slab.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1)
-        slab.position.x = base.x + conflictOffsetX + dagOffsetX + merkleOffsetX
-        slab.position.y = base.y + floatY + dagOffsetY
-        slab.position.z = base.z + conflictOffsetZ + merkleOffsetZ + (isHovered ? 0.35 : 0)
+        const scale = isHovered ? 1.12 : 1.0
+        blade.scale.lerp(new THREE.Vector3(scale, scale, scale), 0.12)
+        blade.position.x = base.x + cx - base.x * scrollState.merkleLock * 0.55
+        blade.position.y = base.y + floatY + (2 - idx) * 0.35 * scrollState.dagSpread
+        blade.position.z = base.z + cz + (isHovered ? 0.35 : 0)
       })
 
-      renderer.render(scene, camera)
+      composer.render()
     }
     animate()
 
     const handleResize = () => {
       if (!container) return
-      camera.aspect = container.clientWidth / container.clientHeight
+      const w = container.clientWidth
+      const h = container.clientHeight
+      camera.aspect = w / h
       camera.updateProjectionMatrix()
-      renderer.setSize(container.clientWidth, container.clientHeight)
+      renderer.setSize(w, h)
+      composer.setSize(w, h)
     }
     window.addEventListener('resize', handleResize)
 
@@ -371,6 +445,7 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
       window.removeEventListener('resize', handleResize)
       cancelAnimationFrame(rafId)
       ctx.revert()
+      pmremGenerator.dispose()
       renderer.dispose()
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement)

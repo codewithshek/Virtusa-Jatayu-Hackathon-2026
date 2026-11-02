@@ -1,18 +1,18 @@
 import React from 'react'
 import { AgentTrace } from '../types'
-import { Activity, Clock, CheckCircle2, ChevronRight } from 'lucide-react'
+import { Clock } from 'lucide-react'
 
 interface AgentTraceTimelineProps {
   trace: AgentTrace[]
   latency: number
 }
 
-const AGENT_CONFIGS: Record<string, { label: string; color: string; badge: string }> = {
-  retriever: { label: 'Retriever Agent', color: 'from-blue-500 to-cyan-400', badge: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30' },
-  synthesizer: { label: 'Synthesizer Agent', color: 'from-emerald-500 to-teal-400', badge: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
-  critic: { label: 'Critic Agent', color: 'from-amber-500 to-orange-400', badge: 'text-amber-400 bg-amber-500/10 border-amber-500/30' },
-  resolution_engine: { label: 'Resolution Engine', color: 'from-purple-500 to-pink-500', badge: 'text-purple-400 bg-purple-500/10 border-purple-500/30' },
-  resolver: { label: 'Resolution Engine', color: 'from-purple-500 to-pink-500', badge: 'text-purple-400 bg-purple-500/10 border-purple-500/30' }
+const AGENT_LABELS: Record<string, string> = {
+  retriever: 'RETRIEVER // BM25 + FAISS + DAG',
+  synthesizer: 'SYNTHESIZER // NIM LLAMA 3.1 70B',
+  critic: 'CRITIC // 3-VECTOR ADVERSARY',
+  resolution_engine: 'RESOLVER // DEONTIC PRECEDENCE',
+  resolver: 'RESOLVER // DEONTIC PRECEDENCE',
 }
 
 export const AgentTraceTimeline: React.FC<AgentTraceTimelineProps> = ({ trace, latency }) => {
@@ -23,54 +23,47 @@ export const AgentTraceTimeline: React.FC<AgentTraceTimelineProps> = ({ trace, l
   const totalLatency = latency || trace.reduce((sum, t) => sum + (t.latency_ms || 0), 0)
 
   return (
-    <div className="glass-panel rounded-2xl p-5 border border-slate-800 backdrop-blur-xl">
-      <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Agent Trace</h3>
-        </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700/60 text-xs font-mono text-emerald-300">
-          <Clock className="w-3 h-3" />
-          <span>{totalLatency.toFixed(0)} ms</span>
+    <div className="w-full border border-[#F4F3EF]/12 bg-[#0B0B0D]/90 crosshair-corner p-5 font-sans">
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#F4F3EF]/10">
+        <span className="font-mono text-[11px] tracking-[0.2em] text-[#C4F82A] uppercase">
+          [SYS.02 // TRACE TELEMETRY]
+        </span>
+        <div className="flex items-center gap-1.5 font-mono text-[11px] text-zinc">
+          <Clock className="w-3 h-3 text-ash" />
+          <span className="text-bone font-bold">{totalLatency.toFixed(0)} ms</span>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 font-mono text-xs">
         {trace.map((step, index) => {
-          const cfg = AGENT_CONFIGS[step.step] || {
-            label: step.step,
-            color: 'from-slate-500 to-slate-400',
-            badge: 'text-slate-400 bg-slate-800 border-slate-700'
-          }
+          const label = AGENT_LABELS[step.step] || step.step.toUpperCase()
           const percentage = totalLatency > 0 ? ((step.latency_ms || 0) / totalLatency) * 100 : 25
 
           return (
-            <div key={index} className="relative pl-6 pb-2 border-l border-slate-800 last:border-transparent">
-              <div className="absolute -left-1.5 top-0 w-3 h-3 rounded-full bg-slate-900 border-2 border-emerald-400" />
-              
-              <div className="flex items-center justify-between mb-1">
-                <span className={`text-xs font-mono px-2 py-0.5 rounded border ${cfg.badge}`}>
-                  {cfg.label}
-                </span>
-                <span className="text-xs font-mono text-slate-400">
+            <div key={index} className="space-y-1.5 pb-3 border-b border-[#F4F3EF]/5 last:border-b-0 last:pb-0">
+              <div className="flex items-center justify-between">
+                <span className="text-bone font-medium text-[11px]">{label}</span>
+                <span className="text-zinc text-[11px]">
                   {step.latency_ms ? `${step.latency_ms.toFixed(0)}ms` : '<1ms'}
                 </span>
               </div>
 
-              <div className="text-xs text-slate-300 font-medium flex items-center gap-1 mt-1">
-                <span>{step.action?.replace(/_/g, ' ') || 'Process'}</span>
+              <div className="flex items-center justify-between text-[11px] text-ash">
+                <span>{step.action?.toUpperCase().replace(/_/g, ' ') || 'EXECUTION'}</span>
                 {step.contradictions_found !== undefined && (
-                  <span className="text-amber-400 font-mono">({step.contradictions_found} conflicts)</span>
+                  <span className="text-[#FF3B1D] font-bold">
+                    [{step.contradictions_found} CONFLICTS]
+                  </span>
                 )}
                 {step.provider && (
-                  <span className="text-emerald-400 font-mono text-[11px]">[{step.provider}]</span>
+                  <span className="text-[#C4F82A]">[{step.provider}]</span>
                 )}
               </div>
 
-              <div className="w-full bg-slate-950 rounded-full h-1.5 mt-2 overflow-hidden border border-slate-800">
+              <div className="w-full bg-black h-1 overflow-hidden border border-[#F4F3EF]/10 mt-1.5">
                 <div
-                  className={`h-full rounded-full bg-gradient-to-r ${cfg.color} transition-all duration-500`}
-                  style={{ width: `${Math.max(percentage, 8)}%` }}
+                  className="h-full bg-[#C4F82A]"
+                  style={{ width: `${Math.max(percentage, 6)}%` }}
                 />
               </div>
             </div>

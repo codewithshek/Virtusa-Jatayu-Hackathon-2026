@@ -1,0 +1,180 @@
+{
+  "corpus_version": "1.0.0",
+  "description": "Deliberately inconsistent enterprise document corpus for TruthGuard benchmarking",
+  "documents": [
+    {
+      "doc_id": "POL-2023-v1",
+      "title": "Remote Work Policy v1",
+      "version": "1.0",
+      "effective_date": "2023-01-15",
+      "authority_tier": 3,
+      "doc_type": "POLICY",
+      "supersedes": [],
+      "domain_scope": "general",
+      "file_path": "raw_docs/POL-2023-v1_Remote_Work.md"
+    },
+    {
+      "doc_id": "POL-2024-v2",
+      "title": "Remote Work Policy v2",
+      "version": "2.0",
+      "effective_date": "2024-03-01",
+      "authority_tier": 3,
+      "doc_type": "POLICY",
+      "supersedes": ["POL-2023-v1"],
+      "domain_scope": "general",
+      "file_path": "raw_docs/POL-2024-v2_Remote_Work.md"
+    },
+    {
+      "doc_id": "AMD-2025-03",
+      "title": "Executive Amendment: Remote Work Flexibility for Field Engineers",
+      "version": "1.0",
+      "effective_date": "2025-03-15",
+      "authority_tier": 4,
+      "doc_type": "AMENDMENT",
+      "supersedes": ["POL-2024-v2", "POL-2023-v1"],
+      "domain_scope": "field_engineering",
+      "file_path": "raw_docs/AMD-2025-03_Remote_Work_Exec.md"
+    },
+    {
+      "doc_id": "FAQ-2023-HR",
+      "title": "HR Onboarding FAQ",
+      "version": "1.0",
+      "effective_date": "2023-02-01",
+      "authority_tier": 1,
+      "doc_type": "FAQ",
+      "supersedes": [],
+      "domain_scope": "general",
+      "file_path": "raw_docs/FAQ-2023-HR_Onboarding.md"
+    },
+    {
+      "doc_id": "SEC-2024-A",
+      "title": "Security Policy v2: Data Retention",
+      "version": "2.0",
+      "effective_date": "2024-06-01",
+      "authority_tier": 3,
+      "doc_type": "POLICY",
+      "supersedes": [],
+      "domain_scope": "security_telemetry",
+      "file_path": "raw_docs/SEC-2024-A_Data_Retention.md"
+    },
+    {
+      "doc_id": "SEC-2024-B",
+      "title": "Compliance Policy v2: Data Retention",
+      "version": "2.0",
+      "effective_date": "2024-06-01",
+      "authority_tier": 3,
+      "doc_type": "POLICY",
+      "supersedes": [],
+      "domain_scope": "compliance_telemetry",
+      "file_path": "raw_docs/SEC-2024-B_Data_Retention.md"
+    },
+    {
+      "doc_id": "SLA-2024-STD",
+      "title": "Telecom SLA: Standard Tier",
+      "version": "1.0",
+      "effective_date": "2024-01-01",
+      "authority_tier": 3,
+      "doc_type": "SLA",
+      "supersedes": [],
+      "domain_scope": "standard_tier",
+      "file_path": "raw_docs/SLA-2024-STD_Uptime.md"
+    },
+    {
+      "doc_id": "SLA-2024-ENT",
+      "title": "Telecom SLA: Enterprise Addendum",
+      "version": "1.0",
+      "effective_date": "2024-07-01",
+      "authority_tier": 4,
+      "doc_type": "AMENDMENT",
+      "supersedes": ["SLA-2024-STD"],
+      "domain_scope": "enterprise_tier",
+      "file_path": "raw_docs/SLA-2024-ENT_Addendum.md"
+    },
+    {
+      "doc_id": "SOP-2023-CLIN",
+      "title": "Clinical Escalation SOP v1",
+      "version": "1.0",
+      "effective_date": "2023-09-01",
+      "authority_tier": 3,
+      "doc_type": "SOP",
+      "supersedes": [],
+      "domain_scope": "clinical_general",
+      "file_path": "raw_docs/SOP-2023-CLIN_Escalation.md"
+    },
+    {
+      "doc_id": "AMD-2024-EMERG",
+      "title": "Emergency Protocol Amendment",
+      "version": "1.0",
+      "effective_date": "2024-11-15",
+      "authority_tier": 4,
+      "doc_type": "AMENDMENT",
+      "supersedes": ["SOP-2023-CLIN"],
+      "domain_scope": "clinical_emergency",
+      "file_path": "raw_docs/AMD-2024-EMERG_Protocol.md"
+    },
+    {
+      "doc_id": "POL-2023-CLOUD",
+      "title": "Cloud Expense Reimbursement Policy",
+      "version": "1.0",
+      "effective_date": "2023-05-01",
+      "authority_tier": 3,
+      "doc_type": "POLICY",
+      "supersedes": [],
+      "domain_scope": "cloud_expenses",
+      "file_path": "raw_docs/POL-2023-CLOUD_Expenses.md"
+    },
+    {
+      "doc_id": "MEMO-2024-CLOUD",
+      "title": "Finance Memo: Cloud Budget Guidelines",
+      "version": "1.0",
+      "effective_date": "2024-02-15",
+      "authority_tier": 2,
+      "doc_type": "MEMO",
+      "supersedes": [],
+      "domain_scope": "cloud_expenses",
+      "file_path": "raw_docs/MEMO-2024-CLOUD_Budget.md"
+    }
+  ],
+  "ground_truth_conflicts": [
+    {
+      "query": "How many days per week can employees work remotely?",
+      "cluster": "remote_work",
+      "conflicting_docs": ["POL-2023-v1", "FAQ-2023-HR", "AMD-2025-03"],
+      "expected_resolution": "RESOLVED_BY_AUTHORITY_OR_RECENCY",
+      "governing_doc": "AMD-2025-03",
+      "stale_docs": ["POL-2023-v1", "FAQ-2023-HR"]
+    },
+    {
+      "query": "What is the mandatory cold-storage retention window for telemetry logs?",
+      "cluster": "data_retention",
+      "conflicting_docs": ["SEC-2024-A", "SEC-2024-B"],
+      "expected_resolution": "UNRESOLVABLE_ABSTAIN",
+      "governing_doc": null,
+      "stale_docs": []
+    },
+    {
+      "query": "What is the uptime SLA for enterprise customers?",
+      "cluster": "telecom_sla",
+      "conflicting_docs": ["SLA-2024-STD", "SLA-2024-ENT"],
+      "expected_resolution": "RESOLVED_BY_AUTHORITY_OR_RECENCY",
+      "governing_doc": "SLA-2024-ENT",
+      "stale_docs": ["SLA-2024-STD"]
+    },
+    {
+      "query": "What is the escalation time for critical clinical alerts?",
+      "cluster": "clinical_sop",
+      "conflicting_docs": ["SOP-2023-CLIN", "AMD-2024-EMERG"],
+      "expected_resolution": "CONDITIONAL_SCOPE_SPLIT",
+      "governing_doc": null,
+      "stale_docs": []
+    },
+    {
+      "query": "What is the monthly cloud expense reimbursement limit?",
+      "cluster": "cloud_expenses",
+      "conflicting_docs": ["POL-2023-CLOUD", "MEMO-2024-CLOUD"],
+      "expected_resolution": "RESOLVED_BY_AUTHORITY_OR_RECENCY",
+      "governing_doc": "POL-2023-CLOUD",
+      "stale_docs": []
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+"""Pydantic models for TruthGuard data contracts."""

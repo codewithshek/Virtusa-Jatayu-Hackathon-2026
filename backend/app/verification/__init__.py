@@ -1,0 +1,1 @@
+"""Verification components for TruthGuard adversarial review."""

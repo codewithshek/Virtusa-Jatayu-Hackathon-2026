@@ -101,7 +101,7 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
       0.1,
       100
     )
-    camera.position.set(1.2, 0.2, 8.2)
+    camera.position.set(0.0, 0.0, 8.4)
 
     // 2. Post-Processing Pipeline (RenderPass -> UnrealBloomPass -> CinemaLensShader)
     const composer = new EffectComposer(renderer)
@@ -109,9 +109,9 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
 
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(container.clientWidth, container.clientHeight),
-      0.65, // strength
-      0.45, // radius
-      0.72 // threshold
+      0.38, // Calibrated bloom strength - eliminates nuclear blowout
+      0.30, // Tight optic radius
+      0.84  // Elevated threshold: only specular glints and neon lines bloom
     )
     composer.addPass(bloomPass)
 
@@ -119,21 +119,22 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
     composer.addPass(lensPass)
 
     // 3. Dramatic Studio Lighting
-    const keyLight = new THREE.DirectionalLight(0xf4f3ef, 2.8)
+    const keyLight = new THREE.DirectionalLight(0xf4f3ef, 2.0)
     keyLight.position.set(5, 7, 4)
     scene.add(keyLight)
 
-    const signalLight = new THREE.PointLight(0xc4f82a, 6, 15)
+    const signalLight = new THREE.PointLight(0xc4f82a, 2.2, 14)
     signalLight.position.set(2.5, 2.0, 3.0)
     scene.add(signalLight)
 
-    const conflictLight = new THREE.PointLight(0xff3b1d, 0, 15)
+    const conflictLight = new THREE.PointLight(0xff3b1d, 0, 14)
     conflictLight.position.set(-2.5, -1.5, 3.0)
     scene.add(conflictLight)
 
     // 4. Master Assembly: The "Epistemic Gyro-Spectrograph"
+    // Positioned in right hemisphere (x = 2.7) so editorial typography on left breathes
     const rig = new THREE.Group()
-    rig.position.x = 1.35 // Offset right on desktop for asymmetric Swiss editorial balance
+    rig.position.set(2.7, 0.0, 0)
     scene.add(rig)
 
     // 4A. Inner Living Shader Core (Domain-Warped Energy Nucleus)
@@ -282,11 +283,11 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
 
     const blades: THREE.Mesh[] = []
     const bladeCoords = [
-      { x: -2.55, y: 1.35, z: 0.5, ry: 0.35 },
-      { x: 2.35, y: 1.25, z: 0.4, ry: -0.35 },
-      { x: -2.65, y: -0.25, z: 0.85, ry: 0.28 },
-      { x: 2.45, y: -0.35, z: 0.85, ry: -0.28 },
-      { x: 0.0, y: -1.75, z: -0.9, ry: 0.0 },
+      { x: -1.35, y: 1.55, z: 0.3, ry: 0.32 },
+      { x: 2.25, y: 1.35, z: 0.4, ry: -0.35 },
+      { x: -1.25, y: -0.85, z: 0.85, ry: 0.25 },
+      { x: 2.35, y: -0.65, z: 0.85, ry: -0.28 },
+      { x: 0.35, y: -1.95, z: -0.6, ry: 0.0 },
     ]
 
     const bladeGeo = new THREE.BoxGeometry(1.75, 0.88, 0.04)

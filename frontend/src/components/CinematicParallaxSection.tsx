@@ -112,33 +112,36 @@ export const CinematicParallaxSection: React.FC<CinematicParallaxSectionProps> =
       {/* ===================================================================== */}
       {/* CHAPTER 01: Ingestion & Epistemic Grounding (Hero Beat)               */}
       {/* ===================================================================== */}
-      <section className="narrative-chapter relative min-h-screen flex flex-col justify-between px-6 md:px-16 pt-28 pb-16 max-w-7xl mx-auto">
+      <section className="narrative-chapter relative min-h-screen flex flex-col justify-between px-6 md:px-16 pt-32 pb-16 max-w-7xl mx-auto">
         <div className="chapter-num absolute top-20 right-6 text-[18vw] font-display font-black text-bone opacity-10 select-none pointer-events-none leading-none">
           01
         </div>
 
-        <div className="chapter-content max-w-2xl relative z-10">
-          <div className="inline-flex items-center gap-2 mb-6 font-mono text-[11px] tracking-[0.2em] text-[#C4F82A] uppercase">
-            <span className="w-1.5 h-1.5 bg-[#C4F82A]" />
-            <span>[SYS.01 // FORENSIC EPISTEMIC ENGINE]</span>
+        <div className="chapter-content max-w-xl lg:max-w-lg relative z-10">
+          <div className="flex items-center gap-3 mb-8">
+            <span className="w-2 h-2 bg-[#C4F82A]" />
+            <span className="font-mono text-[10px] tracking-[0.25em] text-[#C4F82A] uppercase font-semibold">
+              SYSTEM 01 // EPISTEMIC ENGINE
+            </span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-bone font-display leading-[0.98] mb-8">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-[-0.03em] text-bone font-display leading-[0.94] mb-8">
             Adversarial <br />
             Verification for <br />
-            Inconsistent Corpora.
+            Inconsistent <br />
+            Corpora.
           </h1>
 
-          <p className="text-sm sm:text-base text-ash leading-relaxed font-sans max-w-xl mb-10">
+          <p className="text-sm sm:text-base text-ash leading-relaxed font-sans max-w-md mb-10">
             Enterprise document corpora decay into diametric policy contradictions across version boundaries.
             TruthGuard rejects probabilistic hallucination, enforcing 3-vector adversarial verification,
             bi-temporal DAG precedence, and autonomous abstention.
           </p>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-6">
             <a
               href="#workbench-terminal"
-              className="px-6 py-3.5 bg-bone text-carbon hover:bg-white text-xs font-mono font-bold tracking-widest uppercase transition-colors"
+              className="px-7 py-4 bg-bone text-carbon hover:bg-white text-xs font-mono font-bold tracking-widest uppercase transition-colors"
             >
               Initialize Forensic Terminal →
             </a>

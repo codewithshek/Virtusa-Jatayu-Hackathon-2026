@@ -6,9 +6,9 @@ interface AbstentionBannerProps {
 
 export const AbstentionBanner: React.FC<AbstentionBannerProps> = ({ query }) => {
   return (
-    <div className="w-full border border-[#FF3B1D] bg-[#0B0B0D] p-6 crosshair-corner font-mono text-xs">
-      <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#FF3B1D]/30">
-        <span className="text-[11px] tracking-[0.2em] font-bold text-[#FF3B1D] uppercase">
+    <div className="w-full border border-[#FF331F] bg-[#0D0D11] p-6 crosshair-corner font-mono text-xs">
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#FF331F]/30">
+        <span className="text-[11px] tracking-[0.2em] font-bold text-[#FF331F] uppercase">
           [ALERT // AUTONOMOUS ABSTENTION GATE TRIGGERED]
         </span>
         <span className="text-[10px] text-zinc">STATUS: UNRESOLVABLE_ABSTAIN</span>
@@ -25,22 +25,22 @@ export const AbstentionBanner: React.FC<AbstentionBannerProps> = ({ query }) => 
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-          <div className="p-3 border border-[#FF3B1D]/20 bg-black/60">
-            <span className="text-[#FF3B1D] block text-[10px] tracking-widest uppercase mb-1">EQUAL TIER</span>
+          <div className="p-3 border border-[#FF331F]/20 bg-black/60">
+            <span className="text-[#FF331F] block text-[10px] tracking-widest uppercase mb-1">EQUAL TIER</span>
             <span className="text-bone">Neither document supersedes</span>
           </div>
-          <div className="p-3 border border-[#FF3B1D]/20 bg-black/60">
-            <span className="text-[#FF3B1D] block text-[10px] tracking-widest uppercase mb-1">TEMPORAL PARITY</span>
+          <div className="p-3 border border-[#FF331F]/20 bg-black/60">
+            <span className="text-[#FF331F] block text-[10px] tracking-widest uppercase mb-1">TEMPORAL PARITY</span>
             <span className="text-bone">Co-current effective dates</span>
           </div>
-          <div className="p-3 border border-[#FF3B1D]/20 bg-black/60">
-            <span className="text-[#FF3B1D] block text-[10px] tracking-widest uppercase mb-1">DEONTIC UNSAT</span>
+          <div className="p-3 border border-[#FF331F]/20 bg-black/60">
+            <span className="text-[#FF331F] block text-[10px] tracking-widest uppercase mb-1">DEONTIC UNSAT</span>
             <span className="text-bone">Cross-encoder confidence &gt; 0.70</span>
           </div>
         </div>
 
-        <div className="p-3 bg-black border border-[#FF3B1D]/30 text-[11px] text-zinc mt-2">
-          <span className="text-bone">QUERY UNDER REVIEW:</span> "{query}"
+        <div className="p-3 bg-black border border-[#FF331F]/30 text-[11px] text-zinc mt-2">
+          <span className="text-bone font-bold">QUERY UNDER REVIEW:</span> "{query}"
         </div>
       </div>
     </div>

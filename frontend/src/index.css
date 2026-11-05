@@ -3,52 +3,80 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-void: #060608;
+    --bg-instrument: #0D0D11;
+    --bg-parchment: #F4F1EA;
+    --ink-bone: #F4F1EA;
+    --ink-carbon: #111110;
+    --ink-ash: #8E8E96;
+    --ink-zinc: #52525B;
+    --signal-lime: #D2FF28;
+    --signal-vermilion: #FF331F;
+  }
+
   * {
-    border-color: rgba(244, 243, 239, 0.11);
+    border-color: rgba(244, 241, 234, 0.11);
   }
 
   body {
     margin: 0;
     min-height: 100vh;
     font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-    background-color: #050506;
-    color: #F4F3EF;
+    background-color: var(--bg-void);
+    color: var(--ink-bone);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  code, pre, .font-mono {
+  code, pre, .font-mono, [data-mono] {
     font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .font-editorial {
+    font-family: 'Newsreader', serif;
+  }
+
+  .font-display {
+    font-family: 'Syne', sans-serif;
   }
 }
 
 /* Swiss Architectural Grid & Hairline Primitives */
 .arch-grid {
   background-image: 
-    linear-gradient(to right, rgba(244, 243, 239, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(244, 243, 239, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(244, 241, 234, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(244, 241, 234, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.arch-grid-light {
+  background-image: 
+    linear-gradient(to right, rgba(17, 17, 16, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 17, 16, 0.04) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
 .hairline-border {
-  border: 1px solid rgba(244, 243, 239, 0.11);
+  border: 1px solid rgba(244, 241, 234, 0.11);
 }
 
 .hairline-b {
-  border-bottom: 1px solid rgba(244, 243, 239, 0.11);
+  border-bottom: 1px solid rgba(244, 241, 234, 0.11);
 }
 
 .hairline-t {
-  border-top: 1px solid rgba(244, 243, 239, 0.11);
+  border-top: 1px solid rgba(244, 241, 234, 0.11);
 }
 
 .hairline-l {
-  border-left: 1px solid rgba(244, 243, 239, 0.11);
+  border-left: 1px solid rgba(244, 241, 234, 0.11);
 }
 
 .hairline-r {
-  border-right: 1px solid rgba(244, 243, 239, 0.11);
+  border-right: 1px solid rgba(244, 241, 234, 0.11);
 }
 
 /* Tactical Crosshairs */
@@ -63,7 +91,7 @@
   left: -6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: rgba(244, 243, 239, 0.4);
+  color: rgba(244, 241, 234, 0.35);
   pointer-events: none;
 }
 
@@ -74,8 +102,19 @@
   right: -6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: rgba(244, 243, 239, 0.4);
+  color: rgba(244, 241, 234, 0.35);
   pointer-events: none;
+}
+
+.crosshair-corner-dark::before,
+.crosshair-corner-dark::after {
+  color: rgba(17, 17, 16, 0.35);
+}
+
+.dossier-cell {
+  border: 1px solid rgba(244, 241, 234, 0.11);
+  border-radius: 0px !important;
+  background-color: rgba(13, 13, 17, 0.88);
 }
 
 /* Custom Minimal Scrollbar */
@@ -85,7 +124,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #050506;
+  background: #060608;
 }
 
 ::-webkit-scrollbar-thumb {

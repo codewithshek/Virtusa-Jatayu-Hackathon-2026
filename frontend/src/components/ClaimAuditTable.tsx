@@ -13,9 +13,9 @@ export const ClaimAuditTable: React.FC<ClaimAuditTableProps> = ({ audits }) => {
   const passedCount = audits.filter((a) => a.is_supported && !a.relies_on_stale_source).length
 
   return (
-    <div className="w-full border border-[#F4F3EF]/12 bg-[#0B0B0D]/90 crosshair-corner p-6 font-sans">
-      <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#F4F3EF]/10">
-        <span className="font-mono text-[11px] tracking-[0.2em] text-[#C4F82A] uppercase">
+    <div className="w-full border border-[#F4F1EA]/12 bg-[#0D0D11]/90 crosshair-corner p-6 font-sans">
+      <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#F4F1EA]/10">
+        <span className="font-mono text-[11px] tracking-[0.2em] text-[#D2FF28] uppercase">
           [SYS.05 // CRITIC CLAIM AUDIT MATRIX]
         </span>
         <span className="font-mono text-[11px] text-zinc">
@@ -25,7 +25,7 @@ export const ClaimAuditTable: React.FC<ClaimAuditTableProps> = ({ audits }) => {
 
       <div className="overflow-x-auto">
         <table className="w-full text-left font-mono text-xs">
-          <thead className="bg-black/60 border-b border-[#F4F3EF]/10 text-zinc text-[10px] tracking-widest uppercase">
+          <thead className="bg-black/60 border-b border-[#F4F1EA]/10 text-zinc text-[10px] tracking-widest uppercase">
             <tr>
               <th className="py-3 px-4">GATE</th>
               <th className="py-3 px-4">CLAIM ID</th>
@@ -33,7 +33,7 @@ export const ClaimAuditTable: React.FC<ClaimAuditTableProps> = ({ audits }) => {
               <th className="py-3 px-4">PASSAGE CITATION</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#F4F3EF]/5">
+          <tbody className="divide-y divide-[#F4F1EA]/5">
             {audits.map((a, idx) => {
               const isBacked = a.is_supported && !a.relies_on_stale_source
               const isStale = a.relies_on_stale_source
@@ -43,17 +43,17 @@ export const ClaimAuditTable: React.FC<ClaimAuditTableProps> = ({ audits }) => {
                 <tr key={a.claim_id || idx} className="hover:bg-white/[0.02]">
                   <td className="py-3 px-4">
                     {isBacked && (
-                      <span className="text-[#C4F82A] font-bold text-[10px] border border-[#C4F82A]/40 px-2 py-0.5">
+                      <span className="text-[#D2FF28] font-bold text-[10px] border border-[#D2FF28]/40 px-2 py-0.5">
                         [BACKED]
                       </span>
                     )}
                     {isStale && (
-                      <span className="text-[#FF3B1D] font-bold text-[10px] border border-[#FF3B1D]/40 px-2 py-0.5">
+                      <span className="text-[#FF331F] font-bold text-[10px] border border-[#FF331F]/40 px-2 py-0.5">
                         [STALE SOURCE]
                       </span>
                     )}
                     {isRejected && (
-                      <span className="text-[#FF3B1D] font-bold text-[10px] border border-[#FF3B1D]/40 px-2 py-0.5">
+                      <span className="text-[#FF331F] font-bold text-[10px] border border-[#FF331F]/40 px-2 py-0.5">
                         [REJECTED]
                       </span>
                     )}

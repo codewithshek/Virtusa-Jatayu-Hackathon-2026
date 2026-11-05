@@ -21,9 +21,10 @@ export interface SlabData {
 
 interface HeroScene3DProps {
   onHoverSlab?: (slab: SlabData | null) => void
+  conflictState?: number // 0.0 to 1.0 external conflict override if provided
 }
 
-// Custom Cinema Lens Post-Processing Shader (Chromatic Dispersion + Tactile 35mm Film Grain + Vignette)
+// Custom Cinema Lens Post-Processing Shader (Radial Chromatic Dispersion + Tactile 35mm Film Grain + Vignette)
 const CinemaLensShader = {
   uniforms: {
     tDiffuse: { value: null },
@@ -55,7 +56,7 @@ const CinemaLensShader = {
       float b = texture2D(tDiffuse, vUv - offset).b;
       vec3 col = vec3(r, g, b);
 
-      // Subtle 35mm film grain
+      // 35mm tactile film grain
       float grain = (hash(vUv * 800.0 + uTime) - 0.5) * 0.032;
       col += grain;
 
@@ -68,17 +69,18 @@ const CinemaLensShader = {
   `,
 }
 
-export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
+export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab, conflictState: externalConflict }) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
 
-    // 1. Renderer & Real Studio HDRI Environment via PMREMGenerator + RoomEnvironment
+    // 1. WebGL Renderer with High-Performance Settings & ACES Filmic Tone Mapping
     const renderer = new THREE.WebGLRenderer({
       antialias: false,
       powerPreference: 'high-performance',
+      alpha: false,
     })
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -88,10 +90,10 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
     container.appendChild(renderer.domElement)
 
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x050506)
-    scene.fog = new THREE.FogExp2(0x050506, 0.055)
+    scene.background = new THREE.Color(0x060608)
+    scene.fog = new THREE.FogExp2(0x060608, 0.055)
 
-    // CRITICAL FOR REAL GLASS/METAL: Generate procedural HDRI environment map
+    // Studio HDRI Lighting via PMREMGenerator + RoomEnvironment
     const pmremGenerator = new THREE.PMREMGenerator(renderer)
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture
 
@@ -103,41 +105,40 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
     )
     camera.position.set(0.0, 0.0, 8.4)
 
-    // 2. Post-Processing Pipeline (RenderPass -> UnrealBloomPass -> CinemaLensShader)
+    // 2. Post-Processing Pipeline
     const composer = new EffectComposer(renderer)
     composer.addPass(new RenderPass(scene, camera))
 
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(container.clientWidth, container.clientHeight),
-      0.38, // Calibrated bloom strength - eliminates nuclear blowout
-      0.30, // Tight optic radius
-      0.84  // Elevated threshold: only specular glints and neon lines bloom
+      0.40, // Calibrated bloom strength
+      0.32, // Tight optical radius
+      0.82  // Elevated specular threshold
     )
     composer.addPass(bloomPass)
 
     const lensPass = new ShaderPass(CinemaLensShader)
     composer.addPass(lensPass)
 
-    // 3. Dramatic Studio Lighting
-    const keyLight = new THREE.DirectionalLight(0xf4f3ef, 2.0)
+    // 3. Studio Lighting
+    const keyLight = new THREE.DirectionalLight(0xf4f1ea, 2.0)
     keyLight.position.set(5, 7, 4)
     scene.add(keyLight)
 
-    const signalLight = new THREE.PointLight(0xc4f82a, 2.2, 14)
+    const signalLight = new THREE.PointLight(0xd2ff28, 2.2, 14)
     signalLight.position.set(2.5, 2.0, 3.0)
     scene.add(signalLight)
 
-    const conflictLight = new THREE.PointLight(0xff3b1d, 0, 14)
+    const conflictLight = new THREE.PointLight(0xff331f, 0, 14)
     conflictLight.position.set(-2.5, -1.5, 3.0)
     scene.add(conflictLight)
 
-    // 4. Master Assembly: The "Epistemic Gyro-Spectrograph"
-    // Positioned in right hemisphere (x = 2.7) so editorial typography on left breathes
+    // 4. Central Rig: The "Epistemic Horological Spectrograph"
     const rig = new THREE.Group()
     rig.position.set(2.7, 0.0, 0)
     scene.add(rig)
 
-    // 4A. Inner Living Shader Core (Domain-Warped Energy Nucleus)
+    // 4A. Living Energy Nucleus (Domain-Warped fBm Shader)
     const nucleusMat = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
@@ -163,9 +164,9 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
         varying float vDisplacement;
         void main() {
           float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.2);
-          vec3 lime = vec3(0.768, 0.972, 0.164);      // #C4F82A Signal Lime
-          vec3 vermilion = vec3(1.0, 0.231, 0.114); // #FF3B1D Conflict Vermilion
-          vec3 base = vec3(0.04, 0.05, 0.06);
+          vec3 lime = vec3(0.824, 1.0, 0.157);       // #D2FF28 Signal Lime
+          vec3 vermilion = vec3(1.0, 0.20, 0.12);     // #FF331F Signal Vermilion
+          vec3 base = vec3(0.024, 0.024, 0.031);
           vec3 glow = mix(lime, vermilion, uConflict);
           vec3 col = mix(base, glow, fresnel * 0.85 + smoothstep(0.02, 0.14, vDisplacement) * 0.65);
           gl_FragColor = vec4(col, 1.0);
@@ -175,7 +176,7 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
     const nucleusMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.78, 24), nucleusMat)
     rig.add(nucleusMesh)
 
-    // 4B. Outer Faceted Refractive Crystal Housing (Real Transmission Glass with Chromatic IOR)
+    // 4B. Faceted Refractive Crystal Housing (Real Transmission Glass)
     const crystalGeo = new THREE.OctahedronGeometry(1.38, 2)
     const crystalMat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -194,9 +195,9 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
     const crystalMesh = new THREE.Mesh(crystalGeo, crystalMat)
     rig.add(crystalMesh)
 
-    // 4C. Three Machined Anodized Titanium Gimbal Rings + 120 Instanced Precision Caliper Ticks
+    // 4C. Three Machined Titanium Gimbal Rings + 120 Instanced Vernier Ticks
     const titaniumMat = new THREE.MeshStandardMaterial({
-      color: 0x18181b,
+      color: 0x141418,
       metalness: 0.92,
       roughness: 0.22,
     })
@@ -207,10 +208,10 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
     gimbal3.rotation.y = Math.PI / 3
     rig.add(gimbal1, gimbal2, gimbal3)
 
-    // 120 Instanced Vernier Scale Tick Marks around Gimbal 2
+    // 120 Instanced Vernier Scale Ticks
     const tickCount = 120
     const tickGeo = new THREE.BoxGeometry(0.012, 0.09, 0.012)
-    const tickMat = new THREE.MeshBasicMaterial({ color: 0xf4f3ef, transparent: true, opacity: 0.55 })
+    const tickMat = new THREE.MeshBasicMaterial({ color: 0xf4f1ea, transparent: true, opacity: 0.55 })
     const tickInstanced = new THREE.InstancedMesh(tickGeo, tickMat, tickCount)
     const dummy = new THREE.Object3D()
     for (let i = 0; i < tickCount; i++) {
@@ -224,13 +225,13 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
     }
     gimbal2.add(tickInstanced)
 
-    // 5. Five Architectural Optical Document Blades + Fiber-Optic Bezier Conduits
+    // 5. Five Architectural Optical Evidence Blades
     const slabConfigs: SlabData[] = [
-      { id: 'REG-2025-09', tier: 'TIER 01 // MANDATE', tierNum: 1, clause: 'FIDO2 HARDWARE TOKEN ENFORCED', status: 'GOVERNING', color: '#C4F82A' },
-      { id: 'SEC-2025-11', tier: 'TIER 02 // DIRECTIVE', tierNum: 2, clause: 'ZERO-TRUST ENCLAVE OVERRIDE', status: 'ACTIVE', color: '#F4F3EF' },
-      { id: 'HR-POL-2024', tier: 'TIER 03 // POLICY', tierNum: 3, clause: 'REMOTE WORK: MAX 1 DAY/WK', status: 'CONFLICTING', color: '#FF3B1D' },
-      { id: 'ENG-MEMO-25', tier: 'TIER 04 // ADDENDUM', tierNum: 4, clause: 'EXCEPTION: UP TO 4 DAYS/WK', status: 'SUPERSEDED', color: '#FF3B1D' },
-      { id: 'FAQ-2023-OLD', tier: 'TIER 05 // LEGACY FAQ', tierNum: 5, clause: 'SMS 2FA PERMITTED [REVOKED]', status: 'PRUNED', color: '#71717A' },
+      { id: 'REG-2025-09', tier: 'TIER 01 // MANDATE', tierNum: 1, clause: 'FIDO2 HARDWARE TOKEN ENFORCED', status: 'GOVERNING', color: '#D2FF28' },
+      { id: 'SEC-2025-11', tier: 'TIER 02 // DIRECTIVE', tierNum: 2, clause: 'ZERO-TRUST ENCLAVE OVERRIDE', status: 'ACTIVE', color: '#F4F1EA' },
+      { id: 'HR-POL-2024', tier: 'TIER 03 // POLICY', tierNum: 3, clause: 'REMOTE WORK: MAX 1 DAY/WK', status: 'CONFLICTING', color: '#FF331F' },
+      { id: 'ENG-MEMO-25', tier: 'TIER 04 // ADDENDUM', tierNum: 4, clause: 'EXCEPTION: UP TO 4 DAYS/WK', status: 'SUPERSEDED', color: '#FF331F' },
+      { id: 'FAQ-2023-OLD', tier: 'TIER 05 // LEGACY FAQ', tierNum: 5, clause: 'SMS 2FA PERMITTED [REVOKED]', status: 'PRUNED', color: '#52525B' },
     ]
 
     const createSwissBladeTexture = (cfg: SlabData) => {
@@ -238,11 +239,11 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
       canvas.width = 1024
       canvas.height = 512
       const ctx = canvas.getContext('2d')!
-      ctx.fillStyle = '#09090b'
+      ctx.fillStyle = '#060608'
       ctx.fillRect(0, 0, 1024, 512)
 
-      // Hairline architectural border + corner crosshairs
-      ctx.strokeStyle = 'rgba(244, 243, 239, 0.22)'
+      // Hairline architectural border
+      ctx.strokeStyle = 'rgba(244, 241, 234, 0.22)'
       ctx.lineWidth = 2
       ctx.strokeRect(24, 24, 976, 464)
 
@@ -250,26 +251,30 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
       ctx.fillStyle = cfg.color
       ctx.fillRect(24, 24, 10, 464)
 
+      // Tier coordinate
       ctx.fillStyle = cfg.color
       ctx.font = '600 24px "JetBrains Mono", monospace'
       ctx.fillText(cfg.tier, 64, 82)
 
-      ctx.fillStyle = '#F4F3EF'
-      ctx.font = '700 60px "Syne", sans-serif'
+      // Document ID
+      ctx.fillStyle = '#F4F1EA'
+      ctx.font = '700 58px "Syne", sans-serif'
       ctx.fillText(cfg.id, 64, 168)
 
-      ctx.fillStyle = '#A1A1AA'
-      ctx.font = '400 28px "JetBrains Mono", monospace'
+      // Clause text
+      ctx.fillStyle = '#8E8E96'
+      ctx.font = '400 26px "JetBrains Mono", monospace'
       ctx.fillText(cfg.clause, 64, 248)
 
-      // Bottom technical grid
-      ctx.strokeStyle = 'rgba(244, 243, 239, 0.12)'
+      // Bottom technical dividing line
+      ctx.strokeStyle = 'rgba(244, 241, 234, 0.12)'
       ctx.beginPath()
       ctx.moveTo(24, 380)
       ctx.lineTo(1000, 380)
       ctx.stroke()
 
-      ctx.fillStyle = '#71717A'
+      // Disposition and SHA256 receipt
+      ctx.fillStyle = '#52525B'
       ctx.font = '500 22px "JetBrains Mono", monospace'
       ctx.fillText(`DISPOSITION: ${cfg.status}`, 64, 435)
 
@@ -291,20 +296,38 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
     ]
 
     const bladeGeo = new THREE.BoxGeometry(1.75, 0.88, 0.04)
+
+    // Wireframe geometry for X-Ray AST pass
+    const wireframeGeo = new THREE.EdgesGeometry(bladeGeo)
+
     slabConfigs.forEach((cfg, idx) => {
       const tex = createSwissBladeTexture(cfg)
-      const mat = new THREE.MeshPhysicalMaterial({
+      const solidMat = new THREE.MeshPhysicalMaterial({
         map: tex,
         roughness: 0.15,
         metalness: 0.5,
         clearcoat: 1.0,
         clearcoatRoughness: 0.08,
+        transparent: true,
+        opacity: 1.0,
       })
-      const mesh = new THREE.Mesh(bladeGeo, mat)
+
+      const mesh = new THREE.Mesh(bladeGeo, solidMat)
       const base = bladeCoords[idx]
       mesh.position.set(base.x, base.y, base.z)
       mesh.rotation.y = base.ry
-      mesh.userData = { index: idx, base, cfg }
+      mesh.userData = { index: idx, base, cfg, solidMat }
+
+      // Add wireframe child for X-Ray pass
+      const wireMat = new THREE.LineBasicMaterial({
+        color: new THREE.Color(cfg.color),
+        transparent: true,
+        opacity: 0.0,
+      })
+      const wireMesh = new THREE.LineSegments(wireframeGeo, wireMat)
+      mesh.add(wireMesh)
+      mesh.userData.wireMat = wireMat
+
       rig.add(mesh)
       blades.push(mesh)
 
@@ -321,10 +344,12 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
         transparent: true,
         opacity: 0.35,
       })
-      rig.add(new THREE.Mesh(tubeGeo, tubeMat))
+      const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat)
+      rig.add(tubeMesh)
+      mesh.userData.tubeMesh = tubeMesh
     })
 
-    // 6. ScrollTrigger Multi-Beat Camera & Rig Choreography
+    // 6. ScrollTrigger Multi-Beat Choreography
     const scrollState = { conflict: 0, dagSpread: 0, merkleLock: 0 }
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
@@ -336,7 +361,7 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
         },
       })
 
-      // Beat 1 -> 2: Center the rig and trigger Vermilion Deontic Conflict state
+      // Beat 1 -> 2: Center rig, dolly camera, flare vermilion conflict state
       tl.to(rig.position, { x: 0, y: 0.1, ease: 'power2.inOut' }, 0)
         .to(camera.position, { x: 0, z: 6.4, ease: 'power2.inOut' }, 0)
         .to(scrollState, { conflict: 1, ease: 'power2.inOut' }, 0)
@@ -354,7 +379,7 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
         .to(rig.position, { y: 0.8, z: -1.5, ease: 'power2.inOut' }, 0.72)
     })
 
-    // 7. Pointer Raycasting & Dual-Clock Render Loop
+    // 7. Pointer Raycasting & Animation Loop
     const raycaster = new THREE.Raycaster()
     const pointer = new THREE.Vector2(999, 999)
     const mouseSmooth = { x: 0, y: 0, tx: 0, ty: 0 }
@@ -366,26 +391,28 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
     }
     window.addEventListener('mousemove', onPointerMove)
 
-    const clock = new THREE.Clock()
     let rafId: number
     let lastHoveredId: string | null = null
+    const startTime = performance.now()
 
     const animate = () => {
       rafId = requestAnimationFrame(animate)
-      const t = clock.getElapsedTime()
+      const t = (performance.now() - startTime) * 0.001
 
       mouseSmooth.x += (mouseSmooth.tx - mouseSmooth.x) * 0.06
       mouseSmooth.y += (mouseSmooth.ty - mouseSmooth.y) * 0.06
 
+      const activeConflict = externalConflict !== undefined ? externalConflict : scrollState.conflict
+
       nucleusMat.uniforms.uTime.value = t
-      nucleusMat.uniforms.uConflict.value = scrollState.conflict
+      nucleusMat.uniforms.uConflict.value = activeConflict
       lensPass.uniforms.uTime.value = t
 
       // Counter-rotating precision gimbals
       crystalMesh.rotation.y = t * 0.18
       crystalMesh.rotation.z = Math.sin(t * 0.4) * 0.15
 
-      gimbal1.rotation.y = -t * 0.22 + scrollState.conflict * 1.2
+      gimbal1.rotation.y = -t * 0.22 + activeConflict * 1.2
       gimbal1.rotation.x = Math.sin(t * 0.3) * 0.25
 
       gimbal2.rotation.z = t * 0.14 - scrollState.dagSpread * 0.8
@@ -396,7 +423,7 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
 
       raycaster.setFromCamera(pointer, camera)
       const hits = raycaster.intersectObjects(blades)
-      const hoveredMesh = hits.length > 0 ? hits[0].object : null
+      const hoveredMesh = hits.length > 0 ? (hits[0].object as THREE.Mesh) : null
       const hoveredCfg = hoveredMesh ? (hoveredMesh.userData.cfg as SlabData) : null
 
       if ((hoveredCfg?.id || null) !== lastHoveredId) {
@@ -404,19 +431,38 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
         if (onHoverSlab) onHoverSlab(hoveredCfg)
       }
 
+      // Dynamic Wireframe-to-Solid X-Ray Pass (Design Tree Q3)
       blades.forEach((blade, idx) => {
-        const { base } = blade.userData
+        const { base, solidMat, wireMat } = blade.userData
         const isHovered = hoveredMesh === blade
+        const isConflictBlade = idx === 2 || idx === 3
         const floatY = Math.sin(t * 1.5 + idx * 1.2) * 0.06
 
         let cx = 0
         let cz = 0
         if (idx === 2) {
-          cx = scrollState.conflict * 1.25
-          cz = scrollState.conflict * 0.95
+          cx = activeConflict * 1.25
+          cz = activeConflict * 0.95
         } else if (idx === 3) {
-          cx = -scrollState.conflict * 1.25
-          cz = scrollState.conflict * 0.95
+          cx = -activeConflict * 1.25
+          cz = activeConflict * 0.95
+        }
+
+        // X-Ray AST Wireframe transition logic
+        if (activeConflict > 0.4) {
+          if (isConflictBlade || isHovered) {
+            // Conflicting blades stay solid & flare
+            solidMat.opacity = 1.0
+            wireMat.opacity = 0.2
+          } else {
+            // Non-conflicting blades shift into AST wireframe lattice
+            solidMat.opacity = THREE.MathUtils.lerp(solidMat.opacity, 0.25, 0.1)
+            wireMat.opacity = THREE.MathUtils.lerp(wireMat.opacity, 0.75, 0.1)
+          }
+        } else {
+          // Normal mode
+          solidMat.opacity = THREE.MathUtils.lerp(solidMat.opacity, 1.0, 0.1)
+          wireMat.opacity = THREE.MathUtils.lerp(wireMat.opacity, 0.0, 0.1)
         }
 
         const scale = isHovered ? 1.12 : 1.0
@@ -448,11 +494,15 @@ export const HeroScene3D: React.FC<HeroScene3DProps> = ({ onHoverSlab }) => {
       ctx.revert()
       pmremGenerator.dispose()
       renderer.dispose()
+      crystalGeo.dispose()
+      crystalMat.dispose()
+      bladeGeo.dispose()
+      wireframeGeo.dispose()
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement)
       }
     }
-  }, [onHoverSlab])
+  }, [onHoverSlab, externalConflict])
 
   return (
     <div

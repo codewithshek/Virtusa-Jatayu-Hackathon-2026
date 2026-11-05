@@ -1,6 +1,5 @@
 import React from 'react'
 import { DocumentNode, EdgeData, DocAuthorityTier } from '../types'
-import { GitBranch } from 'lucide-react'
 
 interface AuthorityDagGraphProps {
   dagData: {
@@ -20,7 +19,7 @@ const TIER_NAMES: Record<number, string> = {
 export const AuthorityDagGraph: React.FC<AuthorityDagGraphProps> = ({ dagData }) => {
   if (!dagData || dagData.nodes.length === 0) {
     return (
-      <div className="w-full border border-[#F4F3EF]/12 bg-[#0B0B0D]/90 p-5 font-mono text-xs text-zinc">
+      <div className="w-full border border-[#F4F1EA]/12 bg-[#0D0D11]/90 p-5 font-mono text-xs text-zinc">
         <span>[SYS.04 // AUTHORITY DAG LINEAGE INITIALIZING...]</span>
       </div>
     )
@@ -29,9 +28,9 @@ export const AuthorityDagGraph: React.FC<AuthorityDagGraphProps> = ({ dagData })
   const { nodes, edges } = dagData
 
   return (
-    <div className="w-full border border-[#F4F3EF]/12 bg-[#0B0B0D]/90 crosshair-corner p-5 font-sans">
-      <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#F4F3EF]/10">
-        <span className="font-mono text-[11px] tracking-[0.2em] text-[#C4F82A] uppercase">
+    <div className="w-full border border-[#F4F1EA]/12 bg-[#0D0D11]/90 crosshair-corner p-5 font-sans">
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#F4F1EA]/10">
+        <span className="font-mono text-[11px] tracking-[0.2em] text-[#D2FF28] uppercase">
           [SYS.04 // BI-TEMPORAL DAG]
         </span>
         <span className="font-mono text-[10px] text-zinc">
@@ -40,7 +39,7 @@ export const AuthorityDagGraph: React.FC<AuthorityDagGraphProps> = ({ dagData })
       </div>
 
       {/* SVG Network Graph */}
-      <div className="border border-[#F4F3EF]/10 bg-black/60 p-3 overflow-x-auto mb-4">
+      <div className="border border-[#F4F1EA]/10 bg-black/60 p-3 overflow-x-auto mb-4">
         <svg
           viewBox={`0 0 460 ${Math.max(nodes.length * 62 + 30, 240)}`}
           className="w-full min-w-[320px] h-auto"
@@ -55,7 +54,7 @@ export const AuthorityDagGraph: React.FC<AuthorityDagGraphProps> = ({ dagData })
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(244, 243, 239, 0.4)" />
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(244, 241, 234, 0.4)" />
             </marker>
           </defs>
 
@@ -72,7 +71,7 @@ export const AuthorityDagGraph: React.FC<AuthorityDagGraphProps> = ({ dagData })
               <path
                 key={`edge-${idx}`}
                 d={`M 150 ${y1} C 210 ${y1}, 210 ${y2}, 260 ${y2}`}
-                stroke="rgba(244, 243, 239, 0.25)"
+                stroke="rgba(244, 241, 234, 0.25)"
                 strokeWidth="1.5"
                 strokeDasharray="4,3"
                 fill="none"
@@ -94,8 +93,8 @@ export const AuthorityDagGraph: React.FC<AuthorityDagGraphProps> = ({ dagData })
                   y={y - 18}
                   width="130"
                   height="36"
-                  fill="#050506"
-                  stroke={isSuperseded ? '#FF3B1D' : '#C4F82A'}
+                  fill="#060608"
+                  stroke={isSuperseded ? '#FF331F' : '#D2FF28'}
                   strokeWidth="1.5"
                 />
                 <text
@@ -104,7 +103,7 @@ export const AuthorityDagGraph: React.FC<AuthorityDagGraphProps> = ({ dagData })
                   fontSize="11"
                   fontWeight="600"
                   fontFamily="'JetBrains Mono', monospace"
-                  fill="#F4F3EF"
+                  fill="#F4F1EA"
                   textAnchor="middle"
                 >
                   {node.id}
@@ -114,7 +113,7 @@ export const AuthorityDagGraph: React.FC<AuthorityDagGraphProps> = ({ dagData })
                   y={y + 11}
                   fontSize="9"
                   fontFamily="'JetBrains Mono', monospace"
-                  fill={isSuperseded ? '#FF3B1D' : '#C4F82A'}
+                  fill={isSuperseded ? '#FF331F' : '#D2FF28'}
                   textAnchor="middle"
                 >
                   {isSuperseded ? '[SUPERSEDED]' : '[GOVERNING]'}
@@ -130,15 +129,15 @@ export const AuthorityDagGraph: React.FC<AuthorityDagGraphProps> = ({ dagData })
         {nodes.map((n) => (
           <div
             key={n.id}
-            className="flex items-center justify-between p-2 border border-[#F4F3EF]/5 bg-black/40"
+            className="flex items-center justify-between p-2 border border-[#F4F1EA]/5 bg-black/40"
           >
             <div className="flex items-center gap-2">
               <span
-                className={`w-1.5 h-1.5 ${n.is_superseded ? 'bg-[#FF3B1D]' : 'bg-[#C4F82A]'}`}
+                className={`w-1.5 h-1.5 ${n.is_superseded ? 'bg-[#FF331F]' : 'bg-[#D2FF28]'}`}
               />
               <span className="text-bone">{n.id}</span>
             </div>
-            <span className={n.is_superseded ? 'text-[#FF3B1D]' : 'text-[#C4F82A]'}>
+            <span className={n.is_superseded ? 'text-[#FF331F]' : 'text-[#D2FF28]'}>
               {n.is_superseded ? 'SUPERSEDED' : 'TIER ' + n.tier}
             </span>
           </div>

@@ -7,15 +7,15 @@ export enum DocAuthorityTier {
 }
 
 export enum ResolutionStatus {
-  CONSISTENT = "CONSISTENT",
-  RESOLVED_CONFLICT = "RESOLVED_CONFLICT",
-  UNRESOLVABLE_ABSTAIN = "UNRESOLVABLE_ABSTAIN",
+  CONSISTENT = 'CONSISTENT',
+  RESOLVED_CONFLICT = 'RESOLVED_CONFLICT',
+  UNRESOLVABLE_ABSTAIN = 'UNRESOLVABLE_ABSTAIN',
 }
 
 export enum NLILabel {
-  CONTRADICTION = "CONTRADICTION",
-  ENTAILMENT = "ENTAILMENT",
-  NEUTRAL = "NEUTRAL",
+  CONTRADICTION = 'CONTRADICTION',
+  ENTAILMENT = 'ENTAILMENT',
+  NEUTRAL = 'NEUTRAL',
 }
 
 export interface PassageMetadata {
@@ -46,6 +46,7 @@ export interface PositionSurfaced {
   is_stale: boolean
   authority_tier: number
   effective_date: string
+  resolution_rule?: string
 }
 
 export interface ContradictionEdge {
@@ -65,6 +66,43 @@ export interface ClaimAuditResult {
   supporting_passage_ids: string[]
 }
 
+export interface AgentTrace {
+  step: string
+  action: string
+  latency_ms: number
+  provider?: string
+  contradictions_found?: number
+  [key: string]: unknown
+}
+
+export interface MerkleProvenance {
+  merkle_root?: string
+  leaf_hashes?: string[]
+  leaf_count?: number
+  inclusion_proofs?: Record<string, string>
+}
+
+export interface SilentRevocation {
+  doc_id?: string
+  revoked_by?: string
+  reason?: string
+  [key: string]: unknown
+}
+
+export interface AutoPr {
+  stale_doc_id: string
+  governing_doc_id: string
+  governing_date: string
+  unified_diff_patch: string
+  infection_score: number
+}
+
+export interface CorpusHygiene {
+  infected_documents?: number
+  auto_prs?: AutoPr[]
+  [key: string]: unknown
+}
+
 export interface TruthGuardResponse {
   query: string
   status: ResolutionStatus
@@ -74,15 +112,12 @@ export interface TruthGuardResponse {
   claim_audits: ClaimAuditResult[]
   retrieved_passages: RetrievedPassage[]
   provenance_sha256: string
+  merkle_provenance?: MerkleProvenance
+  silent_revocations?: SilentRevocation[]
+  corpus_hygiene?: CorpusHygiene
+  counterfactual_probes?: string[]
   latency_ms: number
   trace?: AgentTrace[]
-}
-
-export interface AgentTrace {
-  step: string
-  action: string
-  latency_ms: number
-  [key: string]: any
 }
 
 export interface DocumentNode {
@@ -93,11 +128,16 @@ export interface DocumentNode {
   date: string
   scope: string
   is_superseded: boolean
-  color: string
+  color?: string
 }
 
 export interface EdgeData {
   source: string
   target: string
   type: string
+}
+
+export interface DagData {
+  nodes: DocumentNode[]
+  edges: EdgeData[]
 }

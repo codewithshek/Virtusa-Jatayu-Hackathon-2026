@@ -1,82 +1,94 @@
-# TruthGuard Master Design System & Architectural Specification
+# TruthGuard — "The Provenance Edition" Design System
 
-Synthesizing atomic design genes from 100+ Awwwards Sites of the Month (*Lusion, Audemars Piguet RD#5 Lab, Terminal Industries, Shopify Renaissance Edition, Locomotive, Unseen Studio*).
+The frontend is a single, continuous edition experience — **The Provenance Edition, Winter ’26** — modelled on a printed technical release: black covers, parchment interior, a deep-violet provenance chapter, engraved line art, and a working adversarial console. Everything on the page is derived from TruthGuard’s real backend contract (`/api/query`, `/api/corpus`, `/api/audit/{hash}`); there is no decorative 3D, no placeholder data, and no stock illustration.
 
----
-
-## 1. Color System (Strict OKLCH Grounded Palette)
-
-### Canvases & Surfaces
-- `--bg-void`: `#060608` (Obsidian Forensic Void — Acts I & II)
-- `--bg-instrument`: `#0D0D11` (Machined Console Chassis)
-- `--bg-parchment`: `#F4F1EA` (Warm Archival Parchment — Act III DAG)
-- `--bg-panel-dark`: `rgba(13, 13, 17, 0.92)`
-- `--bg-panel-light`: `rgba(244, 241, 234, 0.94)`
-
-### Typography Inks
-- `--ink-bone`: `#F4F1EA` (Primary text on dark surfaces)
-- `--ink-carbon`: `#111110` (Primary text on parchment surfaces)
-- `--ink-ash`: `#8E8E96` (Secondary metadata on dark surfaces)
-- `--ink-lead`: `#5C5B56` (Secondary metadata on parchment surfaces)
-- `--ink-zinc`: `#52525B` (Tertiary telemetry coordinates)
-
-### Signal Chromas (Zero Generic Blues/Purples)
-- `--signal-lime`: `#D2FF28` (Governing Tier 1 / Entailment Truth / Merkle Seal)
-- `--signal-lime-dim`: `rgba(210, 255, 40, 0.15)`
-- `--signal-vermilion`: `#FF331F` (Deontic Conflict / UNSAT / Abstention Gate / Silent Revocation)
-- `--signal-vermilion-dim`: `rgba(255, 51, 31, 0.15)`
+Reference genes: Shopify Editions (Winter ’26) for pacing, torn-paper edges, oversized typography, and release-notes structure. TruthGuard contributes the legal/technical content, the four-agent tribunal, and the Merkle provenance seal.
 
 ---
 
-## 2. Typography Triad
+## 1. Color System
 
-1. **Monumental Display**: `Syne` (Weights: 700, 800)
-   - Used for monumental section coordinates, numbers (e.g., `01`, `02`, `03`, `04`), and high-impact hero headings.
-   - Tracking: `-0.04em` to `-0.02em`.
-2. **Editorial Verbatim**: `Newsreader` (Weights: 400 italic, 500, 600)
-   - Used for verbatim policy quotes, legal clauses, statutory language, and philosophical citations.
-   - Evokes archival legal gazettes and forensic documentation.
-3. **Telemetry & Monospace**: `JetBrains Mono` (Weights: 400, 500, 600)
-   - Used for technical labels, Merkle hashes, NLI confidence figures, latency stats, and coordinate axes.
-   - Enforced: `font-variant-numeric: tabular-nums slashed-zero`.
-4. **Interface Body**: `Space Grotesk` (Weights: 400, 500)
-   - Used for analytical narrative copy, descriptions, and user interface labels.
+Strictly three paper stocks plus one deep-violet chapter. No gradients-as-spectacle, no lime/vermilion.
 
----
+### Stocks & Inks
+- `#000000` — Cover black (hero, footer ground)
+- `#F7F7EE` — Parchment (primary paper stock)
+- `#292919` — Ink (primary text on parchment)
+- `#DCDCD0` — Stone (hairline rules on parchment)
+- `#CFCFD5` — Mist (secondary lines on dark)
+- `#909083` — Muted (tertiary telemetry)
+- `#1C004F` — Dusk deep violet (provenance chapter ground)
+- `#7126FF` — Signal violet (CTAs, seals, opposing party)
+- `#8051FF` — Violet soft (highlights on deep violet)
 
-## 3. Swiss Architectural Grid & Hairline Primitives
-
-- **Grid System**: 48px baseline hairline coordinate grid (`rgba(244, 241, 234, 0.03)`).
-- **Hairline Borders**: `1px solid rgba(244, 241, 234, 0.11)` on dark surfaces; `1px solid rgba(17, 17, 16, 0.12)` on parchment.
-- **Tactile Crosshairs (`.crosshair-corner`)**:
-  - `+` glyphs placed at corners with `pointer-events-none`.
-  - Color: `rgba(244, 241, 234, 0.35)` or `rgba(17, 17, 16, 0.35)`.
-- **Zero Rounded Slop**:
-  - Strictly `rounded-none`. No `rounded-2xl` or `rounded-3xl` bubble cards.
-  - Razor-sharp corners with architectural bevels or crosshairs.
+### Semantic Signals
+- Supported claims, governing position, verified seal: ink / signal violet on paper; parchment on dark.
+- Contradiction & failure: `#8F1D14` (oxblood) on paper; agent glyph failure uses the same.
+- Status pills are quiet: hairline border, mono label, small dot — never filled urgency badges.
 
 ---
 
-## 4. 3D Horological Spectrograph & WebGL Pipeline
+## 2. Typography
 
-- **WebGL Engine**: Three.js r187 with `ACESFilmicToneMapping` and `SRGBColorSpace`.
-- **Lighting**: Key Directional Light (`2.0`), Signal Point Light (`#D2FF28`, intensity `2.2`), Conflict Point Light (`#FF331F`, dynamic intensity up to `14.0`).
-- **PMREM Environment**: `RoomEnvironment` procedural studio HDRI for physical glass transmission and metal roughness reflections.
-- **Nucleus**: Domain-warped fBm displacement shader reacting to scroll and deontic conflict.
-- **Refractive Housing**: Faceted `OctahedronGeometry` transmission glass (`ior: 1.68`, `transmission: 0.96`, `roughness: 0.06`).
-- **Mechanical Gimbals**: 3 counter-rotating titanium tori (`metalness: 0.92`, `roughness: 0.22`) with 120 instanced vernier scale ticks.
-- **5 Evidence Blades**: High-DPI canvas textures with Swiss typography + 3D Bezier fiber-optic conduit curves.
-- **Post-Processing Pass**:
-  - `RenderPass`
-  - `UnrealBloomPass` (`radius: 0.30`, `strength: 0.38`, `threshold: 0.84`)
-  - `CinemaLensShader` (Radial chromatic dispersion, 35mm subtle film grain, optical vignette).
+| Role | Face | Usage |
+|------|------|-------|
+| Display | **Inter Tight** (400–800, tight tracking) | Headlines, `.display-1`/`.display-2`, numerals |
+| Editorial | **Instrument Serif** (italic) | Editorial counter-lines inside headlines (“on *trial*”) |
+| Script | **Pinyon Script** | Drop caps, flourishes, release-note initial |
+| Telemetry | **JetBrains Mono** | Coordinates, Merkle roots, latencies, tier labels |
+| Body | Inter Tight 400/500 | Narrative copy |
+
+Rules: headlines use negative tracking (`-0.04em` to `-0.06em`); full-width headings use `.display-1`, split-column section heads use `.display-2`; mono runs are uppercase with wide tracking; one script accent per section maximum.
 
 ---
 
-## 5. 4-Act Chameleon Polarity Narrative
+## 3. Paper, Texture & Line Art
 
-- **Act I — Epistemic Grounding**: `#060608` Void. Monumental title depth sandwich, 3D Spectrograph floating on right hemisphere.
-- **Act II — Deontic Contradiction Isolation**: Pinned 280vh stage. Camera dolly-in (`z: 8.4 -> 6.4`). Blades lock head-to-head. Deontic UNSAT flare (`#FF331F`).
-- **Act III — Bi-Temporal DAG Precedence**: Chameleon shift to `#F4F1EA` Warm Parchment via WebGL Noise-Burn Curtain. Editorial layout, high-contrast dark carbon ink, 5-tier authority hierarchy.
-- **Act IV — Cryptographic Grounding & Workbench**: Pinned return to Anodized Carbon `#09090B`. Merkle seal digest animation and transition into the interactive forensic console.
+- **Torn edges** (`TornEdge.tsx`): SVG torn-paper divider at section boundaries. Static, not animated.
+- **Noise overlay**: fixed CSS grain (sub-pixel opacity) over the whole document; disabled for `prefers-reduced-motion`.
+- **Engraving line art** (`DavinciLines.tsx`): the Da Vinci-study star/line drawings used on the cover hero and Provenance chapter. Stroke-drawn SVG, hairline weight, low opacity.
+- **Dot grid**: `radial-gradient` dot paper for console panels, case tiles, DAG backdrop, provenance receipt.
+- **Crosshair & corner marks**: small `+` corner ticks on framed panels (hero frame, workbench shell) — technical engraving language, not ornament.
 
+## 4. Layout System
+
+- 12-column grid on a fluid shell (`--pad-x: clamp(20px, 4.2vw, 64px)`, max width 1680px).
+- Section numbering `01 → 07` rendered as hairline markers (`.section-marker`) — the page is an index, not a brochure.
+- **Side rail** (`SideRail.tsx`): fixed minimal numeric index (`01–07`) visible ≥1200px, `mix-blend-mode: difference`, left 8px. It numbers sections; it never labels them in the gutter.
+- Hero and Closing use full-bleed black; Premise, Tribunal, Conflict Atlas, Workbench, Authority, Edition Notes are parchment; Provenance is the deep-violet chapter.
+
+## 5. Signature Components
+
+- **Hero** (`Hero.tsx`): black cover; thin framed plate; oversized “One edition.” headline with an Instrument Serif italic line; Davinci star-map study; availability ticker (“Winter ’26”), two pills (“Open workbench”, “Read the notes”).
+- **Premise** (`Premise.tsx`): thesis statements plus the capability strip (`4 adversarial agents · 5 authority tiers · 3 resolution modes · 1 Merkle root`).
+- **Tribunal** (`Tribunal.tsx`): the four agents as engraved cards — The Archivist (retriever), The Advocate (synthesizer), The Adversary (critic), The Magistrate (resolver) — each with an `AgentGlyph` (stack, lens, scales, seal) and machine specs (`BM25 0.5 + DENSE 0.5`, `NLI ≥ 0.70`, …).
+- **Conflict Atlas** (`ConflictAtlas.tsx`): tabbed anatomy of the three conflict classes with evidence passages, resolution rule, and the stamped outcome.
+- **Workbench** (`Workbench.tsx`): the live console. Query input, four case files, audit pipeline (Retrieve → Expand → Synthesize → Adversary → Resolve), then the results ledger.
+- **Authority** (`Authority.tsx`): bi-temporal precedence across the 5-tier ladder (FAQ 01 → Regulatory mandate 05) with the live `AuthorityDag.tsx` graph.
+- **Provenance** (`Provenance.tsx`): deep-violet chapter; `MerkleDiagram.tsx`; byte-span inclusion proof walkthrough; audit-endpoint link (`/api/audit/{root}`).
+- **Edition Notes** (`EditionNotes.tsx`): release notes with script initials and mono marginalia.
+- **Closing CTA** (`ClosingCta.tsx`) + **Footer** (`Footer.tsx`): back cover; colophon, edition metadata, audit endpoint.
+- **Results** (`results/Results.tsx`): position cards (Governing / Stale / Unresolved), claim audit ledger (supported / stripped, with entailment reason and supporting passage IDs), contradiction ledger, agent trace, Merkle receipt (copyable root, leaf hashes, `/api/audit/` link), corpus hygiene PRs, counterfactual probes, abstention panel.
+
+## 6. Motion
+
+- **Lenis** smooth scroll; **GSAP + ScrollTrigger** for scroll-linked reveals.
+- `Reveal.tsx`: viewport-observed opacity/translate reveals and `MaskLine` (headline lines rise behind a mask).
+- `useInView.ts` hook; `lib/scroll.ts` centralizes `scrollToId` with Lenis-aware easing.
+- Pipeline steps in the Workbench advance on a timer while the audit runs (620 ms/step, visual only).
+- All motion respects `prefers-reduced-motion: reduce`.
+
+## 7. Anti-patterns (removed, do not reintroduce)
+
+- Three.js / WebGL prisms, orbiting blades, gimbals, “spectrograph” concepts.
+- Lime `#D2FF28` / vermilion `#FF331F` / `Syne` / `Space Grotesk` / `Newsreader`.
+- Flat “Git-Diff” enterprise slate-900 console.
+- Emoji section markers, filled status badges, rounded slop (`rounded-2xl/3xl`), drop shadows as depth.
+- Fake counters, fake terminals, static screenshots of anything the API can actually return.
+
+## 8. Verification Loop
+
+1. `npx tsc --noEmit` (or the project typecheck command) — types must stay green.
+2. `npm run build` — Vite production build must succeed.
+3. Dev server on `http://localhost:5173`; `/api` proxied to `http://127.0.0.1:8000` (FastAPI). When the backend is offline, the UI exercises deterministic local fallbacks (`data/fallback.ts`) for all four case files.
+4. Visual check via Chrome DevTools screenshots: every section, every case file, abstention path, mobile 390px, tablet 1024px, desktop 1440px.

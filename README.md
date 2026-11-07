@@ -1,8 +1,8 @@
-# TruthGuard — Forensic Epistemic Engine & Adversarial 3D Document Q&A
+# TruthGuard — Adversarial Document Q&A · The Provenance Edition
 
 **Virtusa Jatayu Season 6 (Use Case 2 — TIME Business Unit)**
 
-TruthGuard answers queries across deliberately inconsistent enterprise document corpora (conflicting policy versions, outdated guidelines, contradicting FAQs, superseded amendments, and jurisdiction mismatches) using a 4-agent adversarial pipeline grounded by **NVIDIA NIM Cloud** (`meta/llama-3.1-70b-instruct`) and an **Awwwards-caliber 3D WebGL frontend**.
+TruthGuard answers queries across deliberately inconsistent enterprise document corpora (conflicting policy versions, outdated guidelines, contradicting FAQs, superseded amendments, and jurisdiction mismatches) using a 4-agent adversarial pipeline grounded by **NVIDIA NIM Cloud** (`meta/llama-3.1-70b-instruct`) and an **editorial, research-driven frontend** — *The Provenance Edition, Winter ’26*.
 
 ---
 
@@ -60,9 +60,9 @@ Backend health & documentation:
 
 ---
 
-### 3. Running the Frontend (Awwwards 3D + Vite)
+### 3. Running the Frontend (Vite + Editorial UI)
 
-The frontend features a cinematic 3D experience with Three.js WebGL, ACESFilmic tone mapping, Lenis smooth scrolling, GSAP ScrollTrigger, and interactive verification telemetry.
+The frontend is **The Provenance Edition**: a black-cover parchment edition with engraved line art (SVG, not WebGL), a deep-violet provenance chapter, Lenis smooth scrolling, GSAP ScrollTrigger reveals, and a live adversarial verification console. Vite proxies `/api` to `http://127.0.0.1:8000`, so run the backend first. If the backend is offline, the UI runs on deterministic local fallbacks for all four case files.
 
 ```powershell
 # Open terminal 2:
@@ -94,21 +94,17 @@ cd backend
 
 ---
 
-## 🎨 Frontend Features & 3D Visuals
+## 🎨 Frontend Features — "The Provenance Edition" (Winter ’26)
 
-- **WebGL Truth Prism (`HeroScene3D.tsx`)**: Real-time Three.js scene with a faceted obsidian icosahedron, outer wireframe dodecahedron lattice, glowing orbit rings, 1,200 additive data particles, ACESFilmic tone mapping, and cursor-damped physics.
-- **Cinematic Visuals (`CinematicParallaxSection.tsx`)**: High-resolution 3D asset showcase:
-  - `hero-prism.jpg`: The obsidian Truth Core scanning holographic document pages.
-  - `adversarial-conflict.jpg`: Red vs Cyan adversarial data streams colliding with telemetry indicators.
-  - `provenance-dag.jpg`: Bi-temporal isometric authority graph with timeline markers.
-- **Interactive Adversarial Terminal (`QueryConsole.tsx`)**: 1-click execution for standard attack vectors:
-  - *Scenario 1: Remote Work Policy Supersession* (Executive Amendment vs HR FAQ).
-  - *Scenario 2: Deadlocked Retention Mandate* (Equal-tier co-current conflict triggering autonomous refusal).
-  - *Scenario 3: Customer SLA vs Marketing FAQ* (Contractual precedence over informal docs).
-  - *Scenario 4: Unbacked Hallucination Trap* (Zero-support claim stripping).
-- **Epistemic Diff Viewer (`ConflictDiffViewer.tsx`)**: Git-diff style side-by-side comparison of active governing policies vs superseded stale predecessors with auto-generated redline PR patch drawers.
-- **Authority DAG Visualizer (`AuthorityDagGraph.tsx`)**: Interactive SVG graph displaying document hierarchies across all 5 tiers.
-- **Critic Claim Audit Table (`ClaimAuditTable.tsx`)**: Micro-level audit of every individual sentence and cited passage.
+- **Cover Hero (`Hero.tsx`)**: Oversized framed plate — "One edition." — with Instrument Serif italic and Davinci-style star-map line art (`DavinciLines.tsx`).
+- **Premise (`Premise.tsx`)**: The edition thesis, the capability strip (4 agents · 5 tiers · 3 resolution modes · 1 Merkle root), and the evaluation scorecard (F1 1.000, 19/19).
+- **The Tribunal (`Tribunal.tsx`)**: Four engraved agent cards — The Archivist (retriever), The Advocate (synthesizer), The Adversary (critic), The Magistrate (resolver) — with AgentGlyph seals and machine specs.
+- **Conflict Atlas (`ConflictAtlas.tsx`)**: Tabbed anatomy of stale, superseded, and contradicting passages with evidence spans and resolution rulings.
+- **Verification Workbench (`Workbench.tsx`)**: Live `/api/query` console — enter a query or load one of four deterministic case files; the audit pipeline animates (Retrieve → Expand → Synthesize → Adversary → Resolve), then renders the full results ledger.
+- **Results Ledger (`results/Results.tsx`)**: Position cards (Governing / Stale / Unresolved), claim-level audit with entailment reasons and supporting passage IDs, contradiction ledger, agent trace, and a copyable Merkle receipt with `/api/audit/{hash}` link. Unsupported claims are shown as *stripped*, never silently dropped.
+- **Authority DAG (`AuthorityDag.tsx`)**: The bi-temporal precedence graph across all 5 tiers (FAQ 01 → Regulatory mandate 05), backed by live `/api/corpus` data when the backend is up.
+- **Provenance Chapter (`Provenance.tsx`)**: Deep-violet interlude with a Merkle tree diagram (`MerkleDiagram.tsx`) and a byte-span inclusion-proof walkthrough.
+- **Edition Notes (`EditionNotes.tsx`) & Closing (`ClosingCta.tsx`)**: Release notes with script drop caps, then the back cover.
 
 ---
 

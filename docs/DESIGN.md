@@ -1,31 +1,40 @@
-# DESIGN.md — TruthGuard "Git-Diff for Truth" UI Specification
+# DESIGN.md — Frontend Architecture & UI Contract
 
-## 1. Visual Aesthetic
-- **Theme**: High-trust Enterprise Forensic Console (Slate-900 dark header, crisp white/slate-50 workspace cards, semantic status badges).
-- **Status Color System**:
-  - `Emerald (#10B981)`: Verified & Active Governing Source (`AMD-2025-03`)
-  - `Amber (#F59E0B)`: Superseded / Stale Source (`POL-2023-v1`, `FAQ-2023-HR`)
-  - `Rose (#F43F5E)`: Direct Contradiction / Unbacked Hallucination / Deadlock Abstention
+Technical companion to `/DESIGN.md` (the visual system). This document describes how the Provenance Edition is wired, not how it looks.
 
-## 2. Four Core UI Panels (Single-Screen Executive Layout)
-1. **Top Bar & Scenario Selector**:
-   - Instant one-click pills for Virtusa evaluators:
-     - `[Scenario 1: Policy v1 vs March 2025 Amendment]`
-     - `[Scenario 2: Deadlocked Security Policies (Abstention)]`
-     - `[Scenario 3: FAQ vs SLA Contradiction]`
-     - `[Scenario 4: Hallucination Trap (Unbacked Claim)]`
+## Stack
 
-2. **Left Column — Multi-Agent Execution Trace**:
-   - Live step cards showing latency and token/NLI metrics for:
-     - `1. Retriever Agent` (Passages pulled + DAG lineage expansion)
-     - `2. Synthesizer Agent` (Draft claims generated)
-     - `3. Critic / Adversary Agent` (Contradictions found, stale docs flagged, unbacked claims stripped)
-     - `4. Resolution Step` (Final epistemic state)
+- Vite + React 19 + TypeScript, Tailwind CSS, GSAP + ScrollTrigger, Lenis.
+- No WebGL. Graphics are SVG line art and CSS textures.
 
-3. **Center Column — Transparent Resolution Verdict & "Git-Diff for Truth"**:
-   - Banner showing `RESOLVED_CONFLICT` (with governing doc badge) or `UNRESOLVABLE_ABSTAIN` (warning banner).
-   - **Side-by-Side Conflict Diff Card**: Left pane shows the superseded/conflicting claim (`Policy v1: "Up to 4 days remote"` highlighted in Amber/Red with `SUPERSEDED` stamp); Right pane shows the governing claim (`Amendment Mar 2025: "Max 2 days remote"` highlighted in Emerald with `GOVERNING` stamp).
+## Page Composition (`src/App.tsx`)
 
-4. **Right Column — Bi-Temporal Authority DAG & Claim Audit Ledger**:
-   - Interactive node graph (`FAQ-2023` --> `POL-2023-v1` --> `POL-2024-v2` --> `AMD-2025-03`).
-   - Cryptographic `SHA-256 Provenance Receipt` with copy/download JSON button.
+`Nav` · `SideRail` (fixed numeric index ≥1200px) · `<main>` containing `Hero` → torn edge → `Premise` → `Tribunal` → `ConflictAtlas` → `Workbench` → `Authority` → `Provenance` → `EditionNotes` → `ClosingCta`, then `Footer`. Torn-paper edges are section wrappers in `App.tsx`; sections are theme classes (`theme-light` / `theme-dark` / `theme-violet` / `theme-deep`).
+
+The Workbench owns the query lifecycle: `handleQuery` in `App.tsx` POSTs to `/api/query`, normalizes with `normalizeResponse`, and falls back to `FALLBACK_RESPONSES` / `genericFallback` when the API is unreachable. A `pendingScroll` ref scrolls to `#results` after the response lands; `useInView` tracks the active section driving `Nav`/`SideRail`.
+
+## Data Contracts
+
+`src/types/index.ts` mirrors `backend/app/schemas/models.py`:
+
+- `TruthGuardResponse` — `status` (`CONSISTENT` | `RESOLVED_CONFLICT` | `UNRESOLVABLE_ABSTAIN`), `final_answer`, `positions_surfaced[]`, `contradictions_detected[]`, `claim_audits[]`, `retrieved_passages[]`, `provenance_sha256`, `merkle_provenance` (`merkle_root`, `leaf_hashes`, `leaf_count`, `inclusion_proofs`), `corpus_hygiene`, `counterfactual_probes`, `trace[]`, `latency_ms`.
+- Authority tiers (numeric, displayed bottom-up 01→05): FAQ/guidance = 1, Memo/addendum = 2, Formal policy = 3, Amendment = 4, Regulatory mandate = 5.
+- `/api/corpus` returns `{ nodes, edges }` (and/or `{ documents, relationships }`); `normalizeDag` in `App.tsx` prefers the former.
+
+Deterministic tier orderings, labels, and enums live in `src/lib/labels.ts` (`tierLabel`, `tierNumber`, `statusMeta`, `splitSentences`, `shortHash`). Case files live in `src/data/scenarios.ts`; offline fixtures in `src/data/fallback.ts`; editorial content (nav, agents, tiers, release notes, stats) in `src/data/edition.ts`.
+
+## Results Rendering (`src/components/results/Results.tsx`)
+
+- **Verdict card** (disposition, latency, positions/conflicts/evidence counts, sealed hash).
+- **Abstain panel** when `status === UNRESOLVABLE_ABSTAIN`; reason is sourced from audits' `failure_reason`.
+- **Positions**: governing / stale / unresolved stamps, tier, effective date, resolution rule.
+- **Claim audit**: supported audits map to sentences only when `supportedCount === sentenceCount` (sentences split with a section-number/abbreviation-aware splitter in `lib/labels.ts`); unsupported audits show "Stripped before publication…" with the entailment failure reason. Never guesses a 1:1 mapping.
+- **Trace** (dark card), **Contradiction ledger**, **Merkle receipt** (copy root; `/api/audit/{root}` link), **Corpus hygiene** (infected docs + unified-diff patch), **Counterfactual probes**.
+
+## Hard Invariants for Contributors
+
+1. No Three.js/WebGL reintroduction; effects are SVG/CSS.
+2. No fabricated metrics — everything in the UI must trace to the API contract or the seeded corpus; evaluation stats come from the backend scorecard (F1 1.000, 19/19) and are labelled as such.
+3. Offline fallbacks must remain deterministic and semantically aligned with the backend (same statuses, same tiers).
+4. `prefers-reduced-motion` is respected everywhere motion is added.
+5. Keep the side rail numeric-only; prose belongs inside sections.

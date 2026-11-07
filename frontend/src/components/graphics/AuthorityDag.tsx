@@ -22,11 +22,12 @@ const TIER_COLORS: Record<number, string> = {
   1: '#77776d',
 }
 
-const WIDTH = 860
+const MIN_WIDTH = 860
 const PAD = 58
 const NODE_W = 138
 const NODE_H = 46
 const ROW_GAP = 82
+const COL_GAP = 24
 
 function shortLabel(node: DocumentNode) {
   const [first, second] = String(node.label ?? '').split('\n')
@@ -42,16 +43,27 @@ export function AuthorityDag({ dag, className = '' }: AuthorityDagProps) {
     const height = 52 + (rows.length - 1) * ROW_GAP + NODE_H + 28
     const positions = new Map<string, { x: number; y: number; node: DocumentNode }>()
 
+    const widestRow = rows.reduce(
+      (widest, tier) => Math.max(widest, dag.nodes.filter((n) => n.tier === tier).length),
+      1
+    )
+    // Widen the canvas to the busiest row so nodes never overlap; the SVG
+    // scales to the container via its viewBox.
+    const width = Math.max(
+      MIN_WIDTH,
+      PAD * 2 + widestRow * NODE_W + (widestRow - 1) * COL_GAP
+    )
+    const span = width - PAD * 2 - NODE_W
+
     rows.forEach((tier, rowIndex) => {
       const group = dag.nodes
         .filter((n) => n.tier === tier)
         .sort((a, b) => String(a.date).localeCompare(String(b.date)))
 
       group.forEach((node, index) => {
-        const span = WIDTH - PAD * 2 - NODE_W
         const x =
           group.length === 1
-            ? WIDTH / 2
+            ? width / 2
             : PAD + NODE_W / 2 + (index * span) / (group.length - 1)
         positions.set(node.id, { x, y: 42 + rowIndex * ROW_GAP + NODE_H / 2, node })
       })
@@ -86,7 +98,7 @@ export function AuthorityDag({ dag, className = '' }: AuthorityDagProps) {
       })
       .filter(Boolean) as { id: string; type: string; d: string }[]
 
-    return { rows, height, positions: Array.from(positions.values()), edges }
+    return { rows, width, height, positions: Array.from(positions.values()), edges }
   }, [dag])
 
   if (!layout) {
@@ -103,7 +115,7 @@ export function AuthorityDag({ dag, className = '' }: AuthorityDagProps) {
     <div className={`dag-wrap ${className}`.trim()}>
       <svg
         className="dag-svg"
-        viewBox={`0 0 ${WIDTH} ${layout.height}`}
+        viewBox={`0 0 ${layout.width} ${layout.height}`}
         role="img"
         aria-label="Document authority graph showing supersession relationships"
       >
